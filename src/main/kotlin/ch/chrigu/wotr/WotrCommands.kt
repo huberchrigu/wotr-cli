@@ -5,8 +5,8 @@ import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.gamestate.GameStateHolder
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationName
+import org.springframework.shell.Availability
 import org.springframework.shell.command.annotation.Command
-import org.springframework.shell.command.annotation.CommandAvailability
 import org.springframework.shell.command.annotation.OptionValues
 
 @Command
@@ -25,14 +25,14 @@ class WotrCommands(private val gameStateHolder: GameStateHolder) {
     }
 
     @Command(command = ["undo"])
-    @CommandAvailability(provider = ["undoAvailability"])
+//    @CommandAvailability(provider = ["undoAvailability"])
     fun undo() = gameStateHolder.undo()
 
-    fun undoAvailability() = gameStateHolder.allowUndo()
+    fun undoAvailability() = if (gameStateHolder.allowUndo()) Availability.available() else Availability.unavailable("Nothing to undo")
 
     @Command(command = ["redo"])
-    @CommandAvailability(provider = ["redoAvailability"])
+//    @CommandAvailability(provider = ["redoAvailability"])
     fun redo() = gameStateHolder.redo()
 
-    fun redoAvailability() = gameStateHolder.allowRedo()
+    fun redoAvailability() = if (gameStateHolder.allowRedo()) Availability.available() else Availability.unavailable("Nothing to redo")
 }

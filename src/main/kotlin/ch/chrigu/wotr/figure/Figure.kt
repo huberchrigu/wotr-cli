@@ -1,3 +1,5 @@
 package ch.chrigu.wotr.figure
 
-class Figure(val type: FigureType)
+import ch.chrigu.wotr.nation.NationName
+
+class Figure(val type: FigureType, val nation: NationName)

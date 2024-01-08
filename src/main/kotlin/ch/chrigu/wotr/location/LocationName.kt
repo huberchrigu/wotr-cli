@@ -4,7 +4,6 @@ enum class LocationName(val shortcut: String) {
     ANDRAST("and"),
     ANFALAS("anf"),
     ANGMAR("ang"),
-    ANORIEN("ano"),
     ARNOR("arn"),
     ASH_MOUNTAINS("am"),
     BARAD_DUR("bd"),
@@ -108,7 +107,7 @@ enum class LocationName(val shortcut: String) {
     WITHERED_HEATH("wh"),
     WOODLAND_REALM("wr");
 
-    private val fullName = name.lowercase().replace("_", " ")
+    val fullName = name.lowercase().replace("_", " ")
 
     companion object {
         fun search(prefix: String) = entries.flatMap { listOf(it.fullName, it.shortcut) }
