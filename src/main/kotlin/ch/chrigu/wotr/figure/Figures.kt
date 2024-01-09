@@ -8,15 +8,16 @@ import ch.chrigu.wotr.player.Player
 data class Figures(private val all: List<Figure>) {
     init {
         require(all.distinct().size == all.size)
-        require(all.all { it.nation.player == player }) // TODO: Characters may be on same field as armies
+        require(getArmy().all { it.nation.player == armyPlayer })
+        require((all - getArmy().toSet()).all { it.nation.player != armyPlayer && it.type.isUniqueCharacter })
         require(numUnits() <= 10)
         if (numUnits() == 0) {
             require(all.none { it.isFreePeopleLeader })
         }
     }
 
-    val player: Player?
-        get() = all.firstOrNull()?.nation?.player
+    val armyPlayer: Player?
+        get() = getArmy().firstOrNull()?.nation?.player
 
     fun subSet(numRegular: Int, numElite: Int, numLeader: Int, nation: NationName?): Figures {
         return Figures(take(numRegular, FigureType.REGULAR, nation) + take(numElite, FigureType.ELITE, nation) + take(numLeader, FigureType.LEADER_OR_NAZGUL, nation))
@@ -34,20 +35,29 @@ data class Figures(private val all: List<Figure>) {
     }
 
     /**
-     * Excludes Nazgul, because they can move alone like characters.
+     * Excludes characters that do not belong to [armyPlayer].
+     * @return Empty if there are no units that could form an army.
      */
-    fun getArmyWithoutCharacters() = all.filter { it.type.isUnit || it.isFreePeopleLeader }
+    fun getArmy(): List<Figure> {
+        val units = getUnits()
+        return if (units.isEmpty())
+            emptyList()
+        else
+            units + all.filter { !it.type.isUnit && it.nation.player == units.first().nation.player }
+    }
 
     /**
-     * @see getArmyWithoutCharacters
+     * @see getArmy
      */
-    fun getArmyPerNation() = getArmyWithoutCharacters().groupBy { it.nation }
+    fun getArmyPerNation() = getArmy().groupBy { it.nation }
 
     fun union(other: Figures) = Figures(all.union(other.all).toList())
 
     override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " (${nation.fullName})" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
+
+    private fun getUnits() = all.filter { it.type.isUnit }
 
     private fun printArmy(figures: List<Figure>) = figures.count { it.type == FigureType.REGULAR }.toString() +
             figures.count { it.type == FigureType.ELITE } +
