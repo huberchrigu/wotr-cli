@@ -9,7 +9,7 @@ data class Figures(private val all: List<Figure>) {
     init {
         require(all.distinct().size == all.size)
         require(getArmy().all { it.nation.player == armyPlayer })
-        require((all - getArmy().toSet()).all { it.nation.player != armyPlayer && it.type.isUniqueCharacter })
+        require((all - getArmy().toSet()).all { !it.type.isUnit && it.nation.player != armyPlayer && it.type.isUniqueCharacter })
         require(numUnits() <= 10)
         if (numUnits() == 0) {
             require(all.none { it.isFreePeopleLeader })

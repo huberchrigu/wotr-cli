@@ -1,5 +1,6 @@
 package ch.chrigu.wotr
 
+import ch.chrigu.wotr.action.KillAction
 import ch.chrigu.wotr.action.MoveAction
 import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.gamestate.GameStateHolder
@@ -25,13 +26,24 @@ class WotrCommands(private val gameStateHolder: GameStateHolder) {
         return newState.location[toLocation]!!
     }
 
+    @Command(command = ["kill"], alias = ["k"])
+    fun killCommand(
+        @Option(shortNames = ['l']) @OptionValues(provider = ["locationCompletionProvider"]) location: String,
+        @Option(shortNames = ['w'], arityMin = 1) @OptionValues(provider = ["figuresCompletionProvider"]) who: Array<String>
+    ): Location {
+        val locationName = LocationName.get(location)
+        val figures = Figures.parse(who, locationName, gameStateHolder.current)
+        val newState = gameStateHolder.apply(KillAction(locationName, figures))
+        return newState.location[locationName]!!
+    }
+
     @Command(command = ["undo"])
     fun undo() = gameStateHolder.undo()
 
-    fun undoAvailability() = if (gameStateHolder.allowUndo()) Availability.available() else Availability.unavailable("Nothing to undo")
+    fun undoAvailability(): Availability = if (gameStateHolder.allowUndo()) Availability.available() else Availability.unavailable("Nothing to undo")
 
     @Command(command = ["redo"])
     fun redo() = gameStateHolder.redo()
 
-    fun redoAvailability() = if (gameStateHolder.allowRedo()) Availability.available() else Availability.unavailable("Nothing to redo")
+    fun redoAvailability(): Availability = if (gameStateHolder.allowRedo()) Availability.available() else Availability.unavailable("Nothing to redo")
 }

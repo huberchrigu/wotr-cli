@@ -162,7 +162,7 @@ object GameStateFactory {
         l(KHAND, listOf(NEAR_HARAD, FAR_HARAD), SOUTHRONS_AND_EASTERLINGS)
     )
 
-    fun newGame() = GameState(LocationName.entries.associateWith { getLocation(it) })
+    fun newGame() = GameState(LocationName.entries.associateWith { getLocation(it) }, createReinforcements(), createCompanions())
 
     private fun getLocation(name: LocationName) = initLocations.first { it.name == name }
 
@@ -177,11 +177,39 @@ object GameStateFactory {
         }
     }
 
+    private fun createReinforcements() =
+        createFiguresFromNationName(DWARVES, 2, 3, 3) +
+                createFiguresFromNationName(ELVES, 2, 4) +
+                createFiguresFromNationName(GONDOR, 6, 4, 3) +
+                createFiguresFromNationName(NORTHMEN, 6, 4, 3) +
+                createFiguresFromNationName(ROHAN, 6, 4, 3) +
+                createFiguresFromNationName(ISENGARD, 6, 5) +
+                createFiguresFromNationName(SAURON, 8, 4, 4) +
+                createFiguresFromNationName(SOUTHRONS_AND_EASTERLINGS, 10, 3) +
+                listOf(Figure(FigureType.WITCH_KING, SAURON), Figure(FigureType.MOUTH_OF_SAURON, SAURON), Figure(FigureType.SARUMAN, ISENGARD)) +
+                listOf(Figure(FigureType.ARAGORN, FREE_PEOPLE), Figure(FigureType.GANDALF_THE_WHITE, FREE_PEOPLE))
+
+    private fun createCompanions() = listOf(
+        Figure(FigureType.GANDALF_THE_GREY, FREE_PEOPLE),
+        Figure(FigureType.STRIDER, NORTHMEN),
+        Figure(FigureType.GIMLI, DWARVES),
+        Figure(FigureType.LEGOLAS, ELVES),
+        Figure(FigureType.BOROMIR, GONDOR),
+        Figure(FigureType.PEREGRIN, FREE_PEOPLE),
+        Figure(FigureType.MERIADOC, FREE_PEOPLE)
+    )
+
     private fun l(name: LocationName, adjacent: List<LocationName>, nation: NationName? = null, type: LocationType? = null) =
         Location(name, adjacent, nation, type ?: NONE, getFigures(name, nation))
 
     private fun f(name: LocationName, numRegular: Int, numElite: Int, numLeaderOrNazgul: Int, nation: NationName? = null) =
-        name to Pair((0 until numRegular).map { FigureType.REGULAR } +
-                (0 until numElite).map { FigureType.ELITE } +
-                (0 until numLeaderOrNazgul).map { FigureType.LEADER_OR_NAZGUL }, nation)
+        name to Pair(createFigures(numRegular, numElite, numLeaderOrNazgul), nation)
+
+    private fun createFiguresFromNationName(nation: NationName, numRegular: Int, numElite: Int, numLeaderOrNazgul: Int = 0) =
+        createFigures(numRegular, numElite, numLeaderOrNazgul)
+            .map { Figure(it, nation) }
+
+    private fun createFigures(numRegular: Int, numElite: Int, numLeaderOrNazgul: Int) = (0 until numRegular).map { FigureType.REGULAR } +
+            (0 until numElite).map { FigureType.ELITE } +
+            (0 until numLeaderOrNazgul).map { FigureType.LEADER_OR_NAZGUL }
 }
