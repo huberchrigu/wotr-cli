@@ -2,8 +2,8 @@ package ch.chrigu.wotr.figure
 
 import ch.chrigu.wotr.nation.NationName
 
-class FigureParser(private val who: String) {
-    fun select(figures: Figures) = who.split(",").map { it.trim() }.map { part ->
+class FigureParser(private val who: List<String>) {
+    fun select(figures: Figures) = who.map { part ->
         check(part.isNotEmpty())
         if (part[0].isDigit()) {
             val digits = part.takeWhile { it.isDigit() }
@@ -16,8 +16,20 @@ class FigureParser(private val who: String) {
             figures.subSet(resolvedCharacters)
         }
     }
-        .reduce { a, b ->
+        .fold(Figures(emptyList())) { a, b ->
             require(a.union(b).isEmpty())
             a + b
         }
+
+    fun getCompletionProposals(figures: Figures): List<String> {
+        val prefix = who.take(who.size - 1)
+        val before = FigureParser(prefix).select(figures)
+        val remaining = figures - before
+        val current = who.last()
+        val armyOptions = (0..remaining.numRegulars())
+            .flatMap { regular -> (0..remaining.numElites()).map { regular.toString() + it } }
+            .flatMap { units -> (0..remaining.numLeadersOrNazgul()).map { units + it } }
+        val options = armyOptions + remaining.characters().map { it.type.shortcut!! }
+        return options.filter { it.startsWith(current, true) }
+    }
 }

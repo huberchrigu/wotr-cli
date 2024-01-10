@@ -25,6 +25,7 @@ dependencies {
     implementation("org.springframework.shell:spring-shell-starter-jna")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.shell:spring-shell-starter-test")
 }
 
 dependencyManagement {

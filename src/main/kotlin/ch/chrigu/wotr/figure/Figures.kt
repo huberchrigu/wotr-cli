@@ -53,15 +53,27 @@ data class Figures(private val all: List<Figure>) {
 
     fun union(other: Figures) = Figures(all.union(other.all).toList())
 
+    fun numElites() = numElites(all)
+    fun numRegulars() = numRegulars(all)
+    fun numLeadersOrNazgul() = numLeadersOrNazgul(all)
+
+    fun characters() = all.filter { it.type.isUniqueCharacter }
+
     override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " (${nation.fullName})" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
 
     private fun getUnits() = all.filter { it.type.isUnit }
 
-    private fun printArmy(figures: List<Figure>) = figures.count { it.type == FigureType.REGULAR }.toString() +
-            figures.count { it.type == FigureType.ELITE } +
-            figures.count { it.type == FigureType.LEADER_OR_NAZGUL }
+    private fun printArmy(figures: List<Figure>) = numRegulars(figures).toString() +
+            numElites(figures) +
+            numLeadersOrNazgul(figures)
+
+    private fun numLeadersOrNazgul(figures: List<Figure>) = figures.count { it.type == FigureType.LEADER_OR_NAZGUL }
+
+    private fun numElites(figures: List<Figure>) = figures.count { it.type == FigureType.ELITE }
+
+    private fun numRegulars(figures: List<Figure>) = figures.count { it.type == FigureType.REGULAR }
 
     private fun numUnits() = all.count { it.type.isUnit }
 
@@ -77,12 +89,12 @@ data class Figures(private val all: List<Figure>) {
     }
 
     companion object {
-        fun parse(who: String?, location: LocationName, gameState: GameState): Figures {
+        fun parse(who: Array<String>, location: LocationName, gameState: GameState): Figures {
             val figures = gameState.location[location]!!.nonBesiegedFigures
-            return if (who == null)
+            return if (who.isEmpty())
                 figures
             else
-                FigureParser(who).select(figures)
+                FigureParser(who.toList()).select(figures)
         }
     }
 }
