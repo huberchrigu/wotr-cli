@@ -89,8 +89,8 @@ data class Figures(private val all: List<Figure>) {
     }
 
     companion object {
-        fun parse(who: Array<String>, location: LocationName, gameState: GameState): Figures {
-            val figures = gameState.location[location]!!.nonBesiegedFigures
+        fun parse(who: Array<String>, locationName: LocationName, gameState: GameState) = parse(who, gameState.location[locationName]!!.nonBesiegedFigures)
+        fun parse(who: Array<String>, figures: Figures): Figures {
             return if (who.isEmpty())
                 figures
             else

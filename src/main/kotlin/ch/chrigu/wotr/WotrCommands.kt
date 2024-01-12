@@ -37,6 +37,17 @@ class WotrCommands(private val gameStateHolder: GameStateHolder) {
         return newState.location[locationName]!!
     }
 
+    @Command(command = ["muster"], alias = ["m"])
+    fun musterCommand(
+        @Option(shortNames = ['w'], arityMin = 1) @OptionValues(provider = ["reinforcementsCompletionProvider"]) who: Array<String>,
+        @Option(shortNames = ['l']) @OptionValues(provider = ["locationCompletionProvider"]) location: String
+    ): Location {
+        val figures = Figures.parse(who, gameStateHolder.current.reinforcements)
+        val locationName = LocationName.get(location)
+        val newState = gameStateHolder.apply(MusterAction(figures, locationName))
+        return newState.location[locationName]!!
+    }
+
     @Command(command = ["undo"])
     fun undo() = gameStateHolder.undo()
 
