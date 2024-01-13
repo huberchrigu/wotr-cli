@@ -177,7 +177,7 @@ object GameStateFactory {
         }
     }
 
-    private fun createReinforcements() =
+    private fun createReinforcements() = Figures(
         createFiguresFromNationName(DWARVES, 2, 3, 3) +
                 createFiguresFromNationName(ELVES, 2, 4) +
                 createFiguresFromNationName(GONDOR, 6, 4, 3) +
@@ -188,6 +188,7 @@ object GameStateFactory {
                 createFiguresFromNationName(SOUTHRONS_AND_EASTERLINGS, 10, 3) +
                 listOf(Figure(FigureType.WITCH_KING, SAURON), Figure(FigureType.MOUTH_OF_SAURON, SAURON), Figure(FigureType.SARUMAN, ISENGARD)) +
                 listOf(Figure(FigureType.ARAGORN, FREE_PEOPLE), Figure(FigureType.GANDALF_THE_WHITE, FREE_PEOPLE))
+    )
 
     private fun createCompanions() = listOf(
         Figure(FigureType.GANDALF_THE_GREY, FREE_PEOPLE),

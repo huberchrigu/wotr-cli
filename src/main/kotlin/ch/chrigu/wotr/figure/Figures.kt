@@ -5,7 +5,7 @@ import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
 
-data class Figures(private val all: List<Figure>) {
+data class Figures(val all: List<Figure>) {
     init {
         require(all.distinct().size == all.size)
         require(getArmy().all { it.nation.player == armyPlayer })

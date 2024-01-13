@@ -2,6 +2,7 @@ package ch.chrigu.wotr
 
 import ch.chrigu.wotr.action.KillAction
 import ch.chrigu.wotr.action.MoveAction
+import ch.chrigu.wotr.action.MusterAction
 import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.gamestate.GameStateHolder
 import ch.chrigu.wotr.location.Location
