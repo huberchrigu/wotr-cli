@@ -3,6 +3,7 @@ package ch.chrigu.wotr.gamestate
 import ch.chrigu.wotr.figure.Figure
 import ch.chrigu.wotr.figure.FigureType
 import ch.chrigu.wotr.figure.Figures
+import ch.chrigu.wotr.figure.FiguresType
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.location.LocationName.*
@@ -187,7 +188,8 @@ object GameStateFactory {
                 createFiguresFromNationName(SAURON, 8, 4, 4) +
                 createFiguresFromNationName(SOUTHRONS_AND_EASTERLINGS, 10, 3) +
                 listOf(Figure(FigureType.WITCH_KING, SAURON), Figure(FigureType.MOUTH_OF_SAURON, SAURON), Figure(FigureType.SARUMAN, ISENGARD)) +
-                listOf(Figure(FigureType.ARAGORN, FREE_PEOPLE), Figure(FigureType.GANDALF_THE_WHITE, FREE_PEOPLE))
+                listOf(Figure(FigureType.ARAGORN, FREE_PEOPLE), Figure(FigureType.GANDALF_THE_WHITE, FREE_PEOPLE)),
+        FiguresType.REINFORCEMENTS
     )
 
     private fun createCompanions() = listOf(

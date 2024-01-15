@@ -3,13 +3,13 @@ package ch.chrigu.wotr.figure
 import ch.chrigu.wotr.nation.NationName
 
 class FigureParser(private val who: List<String>) {
-    fun select(figures: Figures) = who.map { part ->
+    fun select(figures: Figures, defaultNationName: NationName? = null) = who.map { part ->
         check(part.isNotEmpty())
         if (part[0].isDigit()) {
             val digits = part.takeWhile { it.isDigit() }
             require(digits.length in 1..3)
             val nation = if (part.contains("(") && part.contains(")")) NationName.find(part.substringAfter(")").substringBefore(")")) else null
-            figures.subSet(digits[0].digitToInt(), digits.getOrNull(1)?.digitToInt() ?: 0, digits.getOrNull(2)?.digitToInt() ?: 0, nation)
+            figures.subSet(digits[0].digitToInt(), digits.getOrNull(1)?.digitToInt() ?: 0, digits.getOrNull(2)?.digitToInt() ?: 0, nation ?: defaultNationName)
         } else {
             require(part.length == 2)
             val resolvedCharacters = part.chunked(2).map { FigureType.fromShortcut(it) }
@@ -17,7 +17,7 @@ class FigureParser(private val who: List<String>) {
         }
     }
         .fold(Figures(emptyList())) { a, b ->
-            require(a.union(b).isEmpty())
+            require(a.intersect(b).isEmpty())
             a + b
         }
 

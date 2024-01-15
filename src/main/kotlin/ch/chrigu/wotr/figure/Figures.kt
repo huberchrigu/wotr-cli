@@ -5,14 +5,16 @@ import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
 
-data class Figures(val all: List<Figure>) {
+data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LOCATION) {
     init {
         require(all.distinct().size == all.size)
-        require(getArmy().all { it.nation.player == armyPlayer })
-        require((all - getArmy().toSet()).all { !it.type.isUnit && it.nation.player != armyPlayer && it.type.isUniqueCharacter })
-        require(numUnits() <= 10)
-        if (numUnits() == 0) {
-            require(all.none { it.isFreePeopleLeader })
+        if (type != FiguresType.REINFORCEMENTS) {
+            require(getArmy().all { it.nation.player == armyPlayer })
+            require((all - getArmy().toSet()).all { !it.type.isUnit && it.nation.player != armyPlayer && it.type.isUniqueCharacter })
+            require(numUnits() <= 10)
+            if (numUnits() == 0) {
+                require(all.none { it.isFreePeopleLeader })
+            }
         }
     }
 
@@ -20,18 +22,18 @@ data class Figures(val all: List<Figure>) {
         get() = getArmy().firstOrNull()?.nation?.player
 
     fun subSet(numRegular: Int, numElite: Int, numLeader: Int, nation: NationName?): Figures {
-        return Figures(take(numRegular, FigureType.REGULAR, nation) + take(numElite, FigureType.ELITE, nation) + take(numLeader, FigureType.LEADER_OR_NAZGUL, nation))
+        return copy(all = take(numRegular, FigureType.REGULAR, nation) + take(numElite, FigureType.ELITE, nation) + take(numLeader, FigureType.LEADER_OR_NAZGUL, nation))
     }
 
-    fun subSet(characters: List<FigureType>) = Figures(characters.map { take(it) })
+    fun subSet(characters: List<FigureType>) = copy(all = characters.map { take(it) })
 
     fun isEmpty() = all.isEmpty()
 
-    operator fun plus(other: Figures) = Figures(all + other.all)
+    operator fun plus(other: Figures) = copy(all = all + other.all)
 
     operator fun minus(other: Figures): Figures {
         require(all.containsAll(other.all))
-        return Figures(all - other.all.toSet())
+        return copy(all = all - other.all.toSet())
     }
 
     /**
@@ -39,6 +41,7 @@ data class Figures(val all: List<Figure>) {
      * @return Empty if there are no units that could form an army.
      */
     fun getArmy(): List<Figure> {
+        check(type == FiguresType.LOCATION)
         val units = getUnits()
         return if (units.isEmpty())
             emptyList()
@@ -51,7 +54,7 @@ data class Figures(val all: List<Figure>) {
      */
     fun getArmyPerNation() = getArmy().groupBy { it.nation }
 
-    fun union(other: Figures) = Figures(all.union(other.all).toList())
+    fun intersect(other: Figures) = copy(all = all.intersect(other.all.toSet()).toList())
 
     fun numElites() = numElites(all)
     fun numRegulars() = numRegulars(all)
@@ -90,11 +93,11 @@ data class Figures(val all: List<Figure>) {
 
     companion object {
         fun parse(who: Array<String>, locationName: LocationName, gameState: GameState) = parse(who, gameState.location[locationName]!!.nonBesiegedFigures)
-        fun parse(who: Array<String>, figures: Figures): Figures {
+        fun parse(who: Array<String>, figures: Figures, defaultNationName: NationName? = null): Figures {
             return if (who.isEmpty())
                 figures
             else
-                FigureParser(who.toList()).select(figures)
+                FigureParser(who.toList()).select(figures, defaultNationName)
         }
     }
 }

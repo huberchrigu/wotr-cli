@@ -1,6 +1,7 @@
 package ch.chrigu.wotr.location
 
 import ch.chrigu.wotr.figure.Figures
+import ch.chrigu.wotr.figure.FiguresType
 import ch.chrigu.wotr.nation.NationName
 
 data class Location(
@@ -20,6 +21,8 @@ data class Location(
         } else if (!besiegedFigures.isEmpty()) {
             require(!nonBesiegedFigures.isEmpty())
         }
+        require(nonBesiegedFigures.type == FiguresType.LOCATION)
+        require(besiegedFigures.type == FiguresType.LOCATION)
     }
 
     fun remove(figures: Figures) = copy(nonBesiegedFigures = nonBesiegedFigures - figures)

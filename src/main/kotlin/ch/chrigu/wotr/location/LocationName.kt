@@ -107,11 +107,12 @@ enum class LocationName(val shortcut: String) {
     WITHERED_HEATH("wh"),
     WOODLAND_REALM("wr");
 
-    val fullName = name.lowercase().replace("_", " ")
+    val fullName = name.lowercase().replace("_", " ").replaceFirstChar { it.uppercaseChar() }
 
     companion object {
         fun search(prefix: String) = entries.flatMap { listOf(it.fullName, it.shortcut) }
             .filter { it.startsWith(prefix, ignoreCase = true) }
+            .map { it.lowercase() }
 
         fun get(name: String) = entries.filter { it.fullName.equals(name, true) || it.shortcut.equals(name, true) }
             .let {
