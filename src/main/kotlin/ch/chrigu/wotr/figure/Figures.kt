@@ -9,11 +9,12 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     init {
         require(all.distinct().size == all.size)
         if (type != FiguresType.REINFORCEMENTS) {
-            require(getArmy().all { it.nation.player == armyPlayer })
-            require((all - getArmy().toSet()).all { !it.type.isUnit && it.nation.player != armyPlayer && it.type.isUniqueCharacter })
-            require(numUnits() <= 10)
+            require(getArmy().all { it.nation.player == armyPlayer }) { "All army members must be of the same player: ${getArmy()}" }
+            require((all - getArmy().toSet()).all { !it.type.isUnit && (it.nation.player != armyPlayer || !it.type.canBePartOfArmy) && it.type.isUniqueCharacter })
+            { "All figures not belonging to an army must be the other's player unique character: ${(all - getArmy().toSet())}" }
+            require(numUnits() <= 10) { "There must not be more than 10 units, but was ${numUnits()}" }
             if (numUnits() == 0) {
-                require(all.none { it.isFreePeopleLeader })
+                require(all.none { it.isFreePeopleLeader }) { "Free people leaders must not exist without army units: $all" }
             }
         }
     }
@@ -46,7 +47,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
         return if (units.isEmpty())
             emptyList()
         else
-            units + all.filter { !it.type.isUnit && it.nation.player == units.first().nation.player }
+            units + all.filter { !it.type.isUnit && it.nation.player == units.first().nation.player && it.type.canBePartOfArmy }
     }
 
     /**
@@ -62,7 +63,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 
     fun characters() = all.filter { it.type.isUniqueCharacter }
 
-    override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " (${nation.fullName})" } +
+    override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " ($nation)" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
 

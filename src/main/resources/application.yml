@@ -1,3 +1,6 @@
 spring.main.banner-mode: off
-logging.pattern.console:
-logging.file.name: shell.log
+logging:
+  pattern:
+    console:
+  file:
+    name: shell.log

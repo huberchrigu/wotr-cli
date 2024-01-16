@@ -10,8 +10,12 @@ data class Location(
     val nation: NationName?,
     val type: LocationType,
     val nonBesiegedFigures: Figures,
-    val besiegedFigures: Figures = Figures(emptyList())
+    val besiegedFigures: Figures = Figures(emptyList()), // TODO: Change if move/remove
+    val captured: Boolean = false // TODO: Change if move
 ) {
+    val victoryPoints: Int
+        get() = if (type == LocationType.STRONGHOLD) 2 else if (type == LocationType.CITY) 1 else 0
+
     init {
         if (nation == null) {
             require(type == LocationType.NONE || type == LocationType.FORTIFICATION)

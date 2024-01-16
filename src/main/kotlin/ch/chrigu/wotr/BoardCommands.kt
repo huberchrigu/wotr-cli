@@ -7,20 +7,14 @@ import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.gamestate.GameStateHolder
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationName
-import org.springframework.context.annotation.Bean
-import org.springframework.shell.Availability
-import org.springframework.shell.AvailabilityProvider
-import org.springframework.shell.command.CommandHandlingResult
 import org.springframework.shell.command.CommandRegistration
 import org.springframework.shell.command.annotation.Command
-import org.springframework.shell.command.annotation.CommandAvailability
-import org.springframework.shell.command.annotation.ExceptionResolver
 import org.springframework.shell.command.annotation.Option
 import org.springframework.shell.command.annotation.OptionValues
 
-@Command
-class WotrCommands(private val gameStateHolder: GameStateHolder) {
-    @Command(command = ["move"], alias = ["mo"])
+@Command(group = "Board", description = "Commands that modify the board state")
+class BoardCommands(private val gameStateHolder: GameStateHolder) {
+    @Command(command = ["move"], alias = ["mo"], description = "Move figures from one location to another")
     fun moveCommand(
         @Option(shortNames = ['f']) @OptionValues(provider = ["locationCompletionProvider"]) from: String,
         @Option(shortNames = ['t']) @OptionValues(provider = ["locationCompletionProvider"]) to: String,
@@ -33,10 +27,10 @@ class WotrCommands(private val gameStateHolder: GameStateHolder) {
         return newState.location[toLocation]!!
     }
 
-    @Command(command = ["kill"], alias = ["k"])
+    @Command(command = ["kill"], alias = ["k"], description = "Remove figures from location")
     fun killCommand(
         @Option(shortNames = ['l']) @OptionValues(provider = ["locationCompletionProvider"]) location: String,
-        @Option(shortNames = ['w'], arityMin = 0) @OptionValues(provider = ["figuresCompletionProvider"]) who: Array<String>?
+        @Option(shortNames = ['w'], arity = CommandRegistration.OptionArity.ZERO_OR_MORE) @OptionValues(provider = ["figuresCompletionProvider"]) who: Array<String>?
     ): Location {
         val locationName = LocationName.get(location)
         val figures = Figures.parse(who ?: emptyArray(), locationName, gameStateHolder.current)
@@ -44,7 +38,7 @@ class WotrCommands(private val gameStateHolder: GameStateHolder) {
         return newState.location[locationName]!!
     }
 
-    @Command(command = ["muster"], alias = ["mu"])
+    @Command(command = ["muster"], alias = ["mu"], description = "Move figures from reinforcements to location")
     fun musterCommand(
         @Option(shortNames = ['l']) @OptionValues(provider = ["locationCompletionProvider"]) location: String,
         @Option(shortNames = ['w'], arityMin = 1) @OptionValues(provider = ["reinforcementsCompletionProvider"]) who: Array<String>
@@ -54,25 +48,4 @@ class WotrCommands(private val gameStateHolder: GameStateHolder) {
         val newState = gameStateHolder.apply(MusterAction(figures, locationName))
         return newState.location[locationName]!!
     }
-
-    @Command(command = ["undo"])
-    @CommandAvailability(provider = ["undoAvailability"])
-    fun undo() = gameStateHolder.undo()
-
-    @Bean
-    fun undoAvailability() = AvailabilityProvider {
-        if (gameStateHolder.allowUndo()) Availability.available() else Availability.unavailable("Nothing to undo")
-    }
-
-    @Command(command = ["redo"])
-    @CommandAvailability(provider = ["redoAvailability"])
-    fun redo() = gameStateHolder.redo()
-
-    @Bean
-    fun redoAvailability() = AvailabilityProvider {
-        if (gameStateHolder.allowRedo()) Availability.available() else Availability.unavailable("Nothing to redo")
-    }
-
-    @ExceptionResolver
-    fun handleException(e: Exception) = CommandHandlingResult.of(e.message + "\n", 1)
 }

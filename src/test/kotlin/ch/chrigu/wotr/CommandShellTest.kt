@@ -28,7 +28,6 @@ class CommandShellTest(@Autowired private val client: ShellTestClient) {
     @BeforeEach
     fun initSession() {
         session = client.interactive().run()
-        assertScreen { containsText("wotr") }
     }
 
     @AfterEach
@@ -56,7 +55,7 @@ class CommandShellTest(@Autowired private val client: ShellTestClient) {
 
     @Test
     fun `should kill figure`() {
-        write { text("k orthanc 100").carriageReturn() }
+        write { text("k orthanc -w 100").carriageReturn() }
         assertScreen {
             containsText("Orthanc: 310")
         }

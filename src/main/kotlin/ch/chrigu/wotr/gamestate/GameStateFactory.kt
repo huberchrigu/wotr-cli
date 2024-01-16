@@ -172,7 +172,8 @@ object GameStateFactory {
             val notNullNation = initFigures[name]!!.second ?: nation!!
             val all = initFigures[name]!!.first
                 .map { Figure(it, notNullNation) }
-            return Figures(all)
+            val fs = if (name == RIVENDELL) listOf(Figure(FigureType.FELLOWSHIP, FREE_PEOPLE)) else emptyList()
+            return Figures(all + fs)
         } else {
             return Figures(emptyList())
         }

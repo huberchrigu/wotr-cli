@@ -11,6 +11,8 @@ enum class NationName(val player: Player, val shortcut: String) {
     val fullName = name.lowercase().split("_")
         .joinToString(" ") { part -> part.replaceFirstChar { it.titlecase(Locale.getDefault()) } }
 
+    override fun toString() = fullName
+
     companion object {
         fun find(name: String) = entries.first { name.equals(it.fullName, true) || name.equals(it.shortcut, true) }
     }
