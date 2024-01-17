@@ -63,6 +63,8 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 
     fun characters() = all.filter { it.type.isUniqueCharacter }
 
+    fun containsAll(figures: Figures) = all.containsAll(figures.all)
+
     override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " ($nation)" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
@@ -80,8 +82,8 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     private fun numRegulars(figures: List<Figure>) = figures.count { it.type == FigureType.REGULAR }
 
     private fun numUnits() = all.count { it.type.isUnit }
-
     private fun take(type: FigureType) = all.first { it.type == type }
+
     private fun take(num: Int, type: FigureType, nation: NationName?): List<Figure> {
         val allOfType = all.filter { it.type == type }
         val list = allOfType.filter { nation == null || nation == it.nation }.take(num)
