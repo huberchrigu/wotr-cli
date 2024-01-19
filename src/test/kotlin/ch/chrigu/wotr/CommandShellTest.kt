@@ -1,5 +1,6 @@
 package ch.chrigu.wotr
 
+import ch.chrigu.wotr.commands.WotrPromptProvider
 import ch.chrigu.wotr.figure.FiguresCompletionProvider
 import ch.chrigu.wotr.figure.ReinforcementsCompletionProvider
 import ch.chrigu.wotr.gamestate.GameStateHolder

@@ -1,4 +1,4 @@
-package ch.chrigu.wotr
+package ch.chrigu.wotr.commands
 
 import org.springframework.shell.command.CommandExceptionResolver
 import org.springframework.shell.command.CommandHandlingResult

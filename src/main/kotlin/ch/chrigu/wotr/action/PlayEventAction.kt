@@ -1,0 +1,17 @@
+package ch.chrigu.wotr.action
+
+import ch.chrigu.wotr.gamestate.GameState
+import org.jline.terminal.Terminal
+
+class PlayEventAction(private val type: EventType, private val terminal: Terminal) : GameAction {
+    override fun apply(oldState: GameState): GameState {
+        terminal.writer().println("Search your $type deck for the first card whose requirement can be met and that will alter the game state. Play it.")
+        return oldState
+    }
+}
+
+enum class EventType {
+    CHARACTER, STRATEGY;
+
+    override fun toString() = name.lowercase()
+}

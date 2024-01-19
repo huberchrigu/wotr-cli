@@ -1,4 +1,4 @@
-package ch.chrigu.wotr
+package ch.chrigu.wotr.commands
 
 import ch.chrigu.wotr.action.KillAction
 import ch.chrigu.wotr.action.MoveAction

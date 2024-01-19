@@ -1,7 +1,9 @@
 package ch.chrigu.wotr.location
 
+import ch.chrigu.wotr.figure.FigureType
 import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.figure.FiguresType
+import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
 
@@ -50,14 +52,23 @@ data class Location(
         }
     }
 
-    private fun currentlyOccupiedBy() = if (captured) nation?.player?.opponent else nation?.player
+    fun currentlyOccupiedBy() = if (captured) nation?.player?.opponent else nation?.player
+
+    fun contains(type: FigureType) = allFigures().any { it.type == type }
+
+    fun allFigures() = nonBesiegedFigures.all + besiegedFigures.all
+
+    fun getShortestPath(state: GameState, from: LocationName, to: LocationName): List<LocationPath> {
+        return LocationFinder(state).getShortestPath(from, to)
+    }
+
+    override fun toString() = name.fullName + ": " + nonBesiegedFigures.toString() + printStronghold()
 
     private fun newCapturedValueForArmy(armyPlayer: Player?) = if (currentlyOccupiedBy() == armyPlayer || armyPlayer == null)
         captured
     else
         !captured
 
-    override fun toString() = name.fullName + ": " + nonBesiegedFigures.toString() + printStronghold()
     private fun printStronghold() = if (type == LocationType.STRONGHOLD)
         "/$besiegedFigures"
     else
