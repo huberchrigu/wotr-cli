@@ -7,4 +7,6 @@ class DieAction(private val use: DieUsage, private val action: GameAction) : Gam
     override fun apply(oldState: GameState): GameState {
         return oldState.useDie(use).let { action.apply(it) }
     }
+
+    override fun toString() = "Use $use to $action"
 }

@@ -109,6 +109,8 @@ enum class LocationName(val shortcut: String) {
 
     val fullName = name.lowercase().replace("_", " ").replaceFirstChar { it.uppercaseChar() }
 
+    override fun toString() = fullName
+
     companion object {
         fun search(prefix: String) = entries.flatMap { listOf(it.fullName, it.shortcut) }
             .filter { it.startsWith(prefix, ignoreCase = true) }

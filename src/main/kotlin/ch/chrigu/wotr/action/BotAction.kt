@@ -10,4 +10,6 @@ class BotAction(private val terminal: Terminal, private val botActionFactory: Bo
         terminal.writer().println(nextAction.toString())
         return nextAction.apply(oldState)
     }
+
+    override fun toString() = "Bot action"
 }

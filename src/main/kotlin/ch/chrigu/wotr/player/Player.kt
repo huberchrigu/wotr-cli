@@ -1,7 +1,10 @@
 package ch.chrigu.wotr.player
 
-enum class Player {
-    SHADOW, FREE_PEOPLE;
+import ch.chrigu.wotr.dice.DieType
+
+enum class Player(val dieFace: List<DieType>) {
+    SHADOW(listOf(DieType.ARMY, DieType.ARMY_MUSTER, DieType.MUSTER, DieType.EYE, DieType.EVENT, DieType.CHARACTER)),
+    FREE_PEOPLE(listOf(DieType.ARMY, DieType.ARMY_MUSTER, DieType.MUSTER, DieType.WILL_OF_THE_WEST, DieType.EVENT, DieType.CHARACTER));
 
     val opponent: Player
         get() = entries.first { it != this }

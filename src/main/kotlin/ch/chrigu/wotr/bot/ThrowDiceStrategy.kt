@@ -1,5 +1,6 @@
 package ch.chrigu.wotr.bot
 
+import ch.chrigu.wotr.action.AssignEyesAndThrowDiceAction
 import ch.chrigu.wotr.gamestate.GameState
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
@@ -8,11 +9,11 @@ import kotlin.math.max
 @Order(0)
 @Component
 class ThrowDiceStrategy : BotStrategy {
-    override fun getAction(state: GameState): ProposedBotAction? {
+    override fun getActions(state: GameState): List<ProposedBotAction> {
         return if (state.dice.shadow.isEmpty())
-            ProposedBotAction(Int.MAX_VALUE, AssignEyesAndThrowDiceAction(numEyes(state)))
+            listOf(ProposedBotAction(Int.MAX_VALUE, AssignEyesAndThrowDiceAction(numEyes(state))))
         else
-            null
+            emptyList()
     }
 
     private fun numEyes(state: GameState) = if (state.fellowship.mordor == null)

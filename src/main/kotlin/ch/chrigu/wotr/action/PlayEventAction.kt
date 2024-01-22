@@ -8,6 +8,8 @@ class PlayEventAction(private val type: EventType, private val terminal: Termina
         terminal.writer().println("Search your $type deck for the first card whose requirement can be met and that will alter the game state. Play it.")
         return oldState
     }
+
+    override fun toString() = "Play $type event"
 }
 
 enum class EventType {

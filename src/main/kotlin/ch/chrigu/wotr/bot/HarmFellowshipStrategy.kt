@@ -13,13 +13,37 @@ import org.springframework.stereotype.Component
 @Order(2)
 @Component
 class HarmFellowshipStrategy(private val terminal: Terminal) : BotStrategy {
-    override fun getAction(state: GameState): ProposedBotAction? {
+    override fun getActions(state: GameState) = listOfNotNull(
+        getEventAction(state),
+        getNazgulAction(state),
+        getArmyAction(state)
+    )
+
+    private fun getNazgulAction(state: GameState): ProposedBotAction? {
+        val fellowshipLocation = state.fellowshipLocation
+        val dice = state.dice.shadow.getDiceToMoveCharacters()
+        return if (fellowshipLocation.allFigures().containsNazgul() || !fellowshipLocation.canMoveTo(NAZGUL) || dice.isEmpty())
+            null
+        else
+            DieAction(getBest(dice), getMoveCharactersAction(state))
+    }
+
+    private fun getArmyAction(state: GameState): ProposedBotAction? {
+        val fellowshipLocation = state.fellowshipLocation
+        val dice = state.dice.shadow.getDiceToMoveArmy()
+        return if (fellowshipLocation.allFigures().containsShadowArmyUnit() || !fellowshipLocation.canMoveTo(SHADOW_UNIT) || dice.isEmpty())
+            null // TODO: A character die without leadership has no worth
+        else
+            DieAction(getBest(dice), getMoveArmyAction(state))
+    }
+
+    private fun getEventAction(state: GameState): ProposedBotAction {
         val (dieToPlayCharacterEvent, points) = selectBest(state.dice.shadow.getDiceToPlayCharacterEvent()) ?: return null
         val action = DieAction(dieToPlayCharacterEvent, PlayEventAction(EventType.CHARACTER, terminal))
         return if (state.dice.freePeople.getDiceToPlayCharacterEvent().isNotEmpty() && state.fellowship.numStepsLeft(state) == 1)
             ProposedBotAction(Int.MAX_VALUE, action)
         else
-            ProposedBotAction(points, action) // TODO: Move nazgul, army, merge with other actions?
+            ProposedBotAction(points, action) // TODO: merge with other actions?
     }
 
     /**

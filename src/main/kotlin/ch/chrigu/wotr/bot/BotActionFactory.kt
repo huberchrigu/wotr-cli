@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 @Component
 class BotActionFactory(private val strategies: List<BotStrategy>) {
     fun getNext(state: GameState): GameAction {
-        return strategies.mapNotNull { it.getAction(state) }
+        return strategies.flatMap { it.getActions(state) }
             .maxBy { it.points }
             .action
     }

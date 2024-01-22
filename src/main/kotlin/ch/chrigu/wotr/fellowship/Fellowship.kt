@@ -32,7 +32,7 @@ data class Fellowship(val progress: Int = 0, val corruption: Int = 0, val mordor
             .count { it }
     }
 
-    private fun getFellowshipLocation(state: GameState) = state.location.values.first { it.contains(FigureType.FELLOWSHIP) }
+    fun getFellowshipLocation(state: GameState) = state.location.values.first { it.contains(FigureType.FELLOWSHIP) }
 
     companion object {
         private const val MORDOR_STEPS = 5
