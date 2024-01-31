@@ -27,11 +27,6 @@ data class DiceAndRings(val rolled: List<DieType>, val rings: Int, val player: P
     }
 
     fun isEmpty() = rolled.isEmpty()
-    fun getDiceToPlayCharacterEvent(): List<DieUsage> {
-        val matchingDice = rolled.filter { it == DieType.EVENT || it == DieType.CHARACTER || it == DieType.WILL_OF_THE_WEST }
-        val withRing = if (noRings()) emptyList() else (rolled - matchingDice.toSet()).map { DieUsage(it, true, player) }
-        return matchingDice.map { DieUsage(it, false, player) } + withRing
-    }
 
     fun use(dieUsage: DieUsage): DiceAndRings {
         check(!dieUsage.useRing || !noRings())
@@ -39,10 +34,17 @@ data class DiceAndRings(val rolled: List<DieType>, val rings: Int, val player: P
     }
 
     fun roll(num: Int) = copy(rolled = (0 until num).map { rollDie() }, ringsUsed = false, huntBox = emptyList())
+
     fun assignAndRoll(num: Int, numEyes: Int): DiceAndRings {
         val roll = (0 until num - numEyes).map { rollDie() }
         val rolledEyes = roll.filter { it == DieType.EYE }
         return copy(rolled = roll - rolledEyes.toSet(), ringsUsed = false, huntBox = (0 until numEyes).map { DieType.EYE } + rolledEyes)
+    }
+
+    fun getDice(types: Set<DieType>): List<DieUsage> {
+        val matchingDice = rolled.filter { types.contains(it) || it == DieType.WILL_OF_THE_WEST }
+        val withRing = if (noRings()) emptyList() else (rolled - matchingDice.toSet()).map { DieUsage(it, true, player) }
+        return matchingDice.map { DieUsage(it, false, player) } + withRing
     }
 
     private fun rollDie() = player.dieFace[Random.nextInt(6)]

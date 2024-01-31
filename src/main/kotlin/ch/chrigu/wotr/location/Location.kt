@@ -62,6 +62,16 @@ data class Location(
         return LocationFinder(state).getShortestPath(from, to)
     }
 
+    fun adjacentArmies(player: Player, gameState: GameState) = adjacentLocations
+        .map { gameState.location[it]!!.nonBesiegedFigures }
+        .filter { it.armyPlayer == player }
+        .map { it.getArmy() }
+
+    fun nearestLocationWith(state: GameState, condition: (Location) -> Boolean): Int {
+        val candidates = state.location.values.filter(condition)
+        return candidates.minOf { LocationFinder(state).getShortestPath(name, it.name).firstOrNull()?.getLength() ?: 0 }
+    }
+
     override fun toString() = name.fullName + ": " + nonBesiegedFigures.toString() + printStronghold()
 
     private fun newCapturedValueForArmy(armyPlayer: Player?) = if (currentlyOccupiedBy() == armyPlayer || armyPlayer == null)

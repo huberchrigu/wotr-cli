@@ -9,12 +9,10 @@ import kotlin.math.max
 @Order(0)
 @Component
 class ThrowDiceStrategy : BotStrategy {
-    override fun getActions(state: GameState): List<ProposedBotAction> {
-        return if (state.dice.shadow.isEmpty())
-            listOf(ProposedBotAction(Int.MAX_VALUE, AssignEyesAndThrowDiceAction(numEyes(state))))
-        else
-            emptyList()
-    }
+    override fun getActions(state: GameState) = if (state.dice.shadow.isEmpty())
+        listOf(AssignEyesAndThrowDiceAction(numEyes(state)))
+    else
+        emptyList()
 
     private fun numEyes(state: GameState) = if (state.fellowship.mordor == null)
         max(1, state.fellowship.numRerolls(state))

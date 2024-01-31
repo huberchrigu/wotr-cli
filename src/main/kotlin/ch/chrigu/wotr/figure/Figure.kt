@@ -16,5 +16,8 @@ class Figure(val type: FigureType, val nation: NationName) {
     val isNazgul: Boolean
         get() = type == FigureType.LEADER_OR_NAZGUL && nation.player == Player.SHADOW
 
+    fun isNazgulOrWitchKing() = isNazgul || type == FigureType.WITCH_KING
+
+    fun isCharacterOrNazgul() = isNazgul || type.isUniqueCharacter
     override fun toString() = "$type ($nation)"
 }

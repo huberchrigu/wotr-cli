@@ -25,6 +25,11 @@ data class GameState(
     val fellowshipLocation
         get() = fellowship.getFellowshipLocation(this)
 
+    fun getLocationWith(figures: List<Figure>) = location.values.firstOrNull { it.allFigures().containsAll(figures) }
+    fun findAll(filter: (Figure) -> Boolean) = location.values.flatMap { location ->
+        location.allFigures().filter(filter).map { location to it }
+    }
+
     fun removeFrom(locationName: LocationName, figures: Figures) = location(locationName) { remove(figures) }
     fun addTo(locationName: LocationName, figures: Figures) = location(locationName) { add(figures) }
     fun addToReinforcements(figures: Figures) = copy(reinforcements = reinforcements + figures)
@@ -35,9 +40,9 @@ data class GameState(
     fun hasAragorn() = has(FigureType.ARAGORN)
     fun hasGandalfTheWhite() = has(FigureType.GANDALF_THE_WHITE)
 
-    private fun has(figureType: FigureType) = location.values.any { l -> l.allFigures().any { f -> f.type == figureType } }
-
     override fun toString() = "VP: ${getVictoryPoints(Player.FREE_PEOPLE)} vs. ${getVictoryPoints(Player.SHADOW)}, Pr ${fellowship.progress}, Co ${fellowship.corruption}"
+
+    private fun has(figureType: FigureType) = location.values.any { l -> l.allFigures().any { f -> f.type == figureType } }
 
     private fun location(locationName: LocationName, modifier: Location.() -> Location) = copy(location = location + (locationName to location[locationName]!!.run(modifier)))
 
