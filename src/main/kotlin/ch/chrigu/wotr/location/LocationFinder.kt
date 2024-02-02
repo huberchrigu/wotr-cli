@@ -3,6 +3,7 @@ package ch.chrigu.wotr.location
 import ch.chrigu.wotr.gamestate.GameState
 
 class LocationFinder(private val state: GameState) {
+    fun getDistance(from: LocationName, to: LocationName) = getShortestPath(from, to).first().getLength()
     fun getShortestPath(from: LocationName, to: LocationName): List<LocationPath> {
         val all = getAllPaths(from, to)
         val shortest = all.minOf { it.getLength() }

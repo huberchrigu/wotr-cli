@@ -69,7 +69,12 @@ data class Location(
 
     fun nearestLocationWith(state: GameState, condition: (Location) -> Boolean): Int {
         val candidates = state.location.values.filter(condition)
-        return candidates.minOf { LocationFinder(state).getShortestPath(name, it.name).firstOrNull()?.getLength() ?: 0 }
+        return candidates.minOf { LocationFinder(state).getDistance(name, it.name) }
+    }
+
+    fun distanceTo(state: GameState, condition: (Location) -> Boolean): Map<Location, Int> {
+        val candidates = state.location.values.filter(condition)
+        return candidates.associateWith { LocationFinder(state).getDistance(name, it.name) }
     }
 
     override fun toString() = name.fullName + ": " + nonBesiegedFigures.toString() + printStronghold()

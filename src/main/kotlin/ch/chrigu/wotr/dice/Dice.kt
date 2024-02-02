@@ -12,7 +12,7 @@ data class Dice(val shadow: DiceAndRings = DiceAndRings(emptyList(), 0, Player.S
 
     fun assignEyesAndRollDice(state: GameState, numEyes: Int) = copy(
         shadow = shadow.assignAndRoll(7 + state.numMinions(), numEyes),
-        freePeople = freePeople.roll(4 + listOf(state.hasAragorn(), state.hasGandalfTheWhite()).sumOf { if (it) 1 as Int else 0 })
+        freePeople = freePeople.roll(4 + listOf(state.hasAragorn(), state.hasGandalfTheWhite()).sumOf { if (it) 1 else 0 })
     )
 
     init {

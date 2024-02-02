@@ -4,6 +4,7 @@ import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
+import kotlin.math.min
 
 data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LOCATION) {
     init {
@@ -65,11 +66,17 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 
     fun containsAll(figures: Figures) = all.containsAll(figures.all)
 
+    fun combatRolls() = min(5, numUnits())
+
+    fun maxReRolls() = min(leadership(), combatRolls())
+
     override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " ($nation)" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
 
     private fun getUnits() = all.filter { it.type.isUnit }
+
+    private fun leadership() = all.sumOf { it.type.leadership }
 
     private fun printArmy(figures: List<Figure>) = numRegulars(figures).toString() +
             numElites(figures) +
@@ -78,10 +85,10 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     private fun numLeadersOrNazgul(figures: List<Figure>) = figures.count { it.type == FigureType.LEADER_OR_NAZGUL }
 
     private fun numElites(figures: List<Figure>) = figures.count { it.type == FigureType.ELITE }
-
     private fun numRegulars(figures: List<Figure>) = figures.count { it.type == FigureType.REGULAR }
 
     private fun numUnits() = all.count { it.type.isUnit }
+
     private fun take(type: FigureType) = all.first { it.type == type }
 
     private fun take(num: Int, type: FigureType, nation: NationName?): List<Figure> {

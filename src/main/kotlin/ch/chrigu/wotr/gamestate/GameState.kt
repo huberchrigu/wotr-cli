@@ -30,6 +30,9 @@ data class GameState(
         location.allFigures().filter(filter).map { location to it }
     }
 
+    fun vpFreePeople() = location.values.filter { it.captured && it.currentlyOccupiedBy() == Player.FREE_PEOPLE }.sumOf { it.victoryPoints }
+    fun vpShadow() = location.values.filter { it.captured && it.currentlyOccupiedBy() == Player.SHADOW }.sumOf { it.victoryPoints }
+
     fun removeFrom(locationName: LocationName, figures: Figures) = location(locationName) { remove(figures) }
     fun addTo(locationName: LocationName, figures: Figures) = location(locationName) { add(figures) }
     fun addToReinforcements(figures: Figures) = copy(reinforcements = reinforcements + figures)
@@ -40,11 +43,11 @@ data class GameState(
     fun hasAragorn() = has(FigureType.ARAGORN)
     fun hasGandalfTheWhite() = has(FigureType.GANDALF_THE_WHITE)
 
-    override fun toString() = "VP: ${getVictoryPoints(Player.FREE_PEOPLE)} vs. ${getVictoryPoints(Player.SHADOW)}, Pr ${fellowship.progress}, Co ${fellowship.corruption}"
-
     private fun has(figureType: FigureType) = location.values.any { l -> l.allFigures().any { f -> f.type == figureType } }
 
     private fun location(locationName: LocationName, modifier: Location.() -> Location) = copy(location = location + (locationName to location[locationName]!!.run(modifier)))
+
+    override fun toString() = "VP: ${getVictoryPoints(Player.FREE_PEOPLE)} vs. ${getVictoryPoints(Player.SHADOW)}, Pr ${fellowship.progress}, Co ${fellowship.corruption}"
 
     private fun getVictoryPoints(player: Player) = location.values.filter { it.nation?.player != player && it.captured }
         .fold(0) { a, b -> a + b.victoryPoints }

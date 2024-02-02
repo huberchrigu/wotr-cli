@@ -5,7 +5,7 @@ import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.player.Player
 
-data class Fellowship(val progress: Int = 0, val corruption: Int = 0, val mordor: Int? = null) {
+data class Fellowship(val progress: Int = 0, val corruption: Int = 0, val mordor: Int? = null, val discovered: Boolean = false) {
     init {
         require(progress in 0..MAX_CORRUPTION) { "Progress should be between 0 and 12, but was $progress" }
         require(corruption in 0..MAX_CORRUPTION) { "Corruption should be between 0 and 12, but was $corruption" }
@@ -35,7 +35,7 @@ data class Fellowship(val progress: Int = 0, val corruption: Int = 0, val mordor
     fun getFellowshipLocation(state: GameState) = state.location.values.first { it.contains(FigureType.FELLOWSHIP) }
 
     companion object {
-        private const val MORDOR_STEPS = 5
-        private const val MAX_CORRUPTION = 12
+        const val MORDOR_STEPS = 5
+        const val MAX_CORRUPTION = 12
     }
 }
