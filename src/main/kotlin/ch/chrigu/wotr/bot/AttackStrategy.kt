@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 @Order(4)
 @Component
-class AttackOtherArmyStrategy : BotStrategy {
+class AttackStrategy : BotStrategy {
     override fun getActions(state: GameState): List<GameAction> {
         TODO("Not yet implemented")
     }

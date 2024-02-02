@@ -12,8 +12,10 @@ data class Dice(val shadow: DiceAndRings = DiceAndRings(emptyList(), 0, Player.S
 
     fun assignEyesAndRollDice(state: GameState, numEyes: Int) = copy(
         shadow = shadow.assignAndRoll(7 + state.numMinions(), numEyes),
-        freePeople = freePeople.roll(4 + listOf(state.hasAragorn(), state.hasGandalfTheWhite()).sumOf { if (it) 1 else 0 })
+        freePeople = freePeople.roll(4 + listOf(state.hasAragorn(), state.hasGandalfTheWhite()).sumOf { toInt(it) })
     )
+
+    private fun toInt(it: Boolean) = if (it) 1 else 0
 
     init {
         require(!shadow.rolled.contains(DieType.WILL_OF_THE_WEST))

@@ -4,5 +4,5 @@ import ch.chrigu.wotr.gamestate.GameState
 
 class DieActionFactory(private val state: GameState) {
     fun everyCombination(action: GameAction) = state.dice.shadow.getDice(action.requiredDice())
-        .map { DieAction(it, action) }
+        .map { DieAction(it, listOf(action)) }
 }
