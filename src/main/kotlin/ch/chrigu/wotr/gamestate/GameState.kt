@@ -9,10 +9,13 @@ import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.figure.FiguresType
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationName
+import ch.chrigu.wotr.nation.Nation
+import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
 
 data class GameState(
     val location: Map<LocationName, Location>,
+    val nation: Map<NationName, Nation>,
     val reinforcements: Figures,
     val companions: List<Figure>,
     val fellowship: Fellowship = Fellowship(),
@@ -42,6 +45,9 @@ data class GameState(
     fun numMinions() = location.values.sumOf { it.allFigures().count { figure -> figure.type.minion } }
     fun hasAragorn() = has(FigureType.ARAGORN)
     fun hasGandalfTheWhite() = has(FigureType.GANDALF_THE_WHITE)
+    fun hasSaruman() = has(FigureType.SARUMAN)
+
+    fun updateNation(name: NationName, modifier: Nation.() -> Nation) = copy(nation = nation + (name to nation[name]!!.run(modifier)))
 
     private fun has(figureType: FigureType) = location.values.any { l -> l.allFigures().any { f -> f.type == figureType } }
 

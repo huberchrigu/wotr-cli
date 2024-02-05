@@ -34,5 +34,5 @@ class MoveArmyStrategy(private val terminal: Terminal) : BotStrategy {
             }
         }
     }
-        .flatMap { figures -> Permutations.of(figures.characters().map { it.type }).map { figures.subSet(it) } }
+        .flatMap { figures -> Combinations.allSizes(figures.characters().map { it.type }).map { figures.subSet(it) } }
 }
