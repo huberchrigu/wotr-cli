@@ -27,7 +27,7 @@ class BotActionFactory(private val strategies: List<BotStrategy>) {
         dieActionFactory.everyCombination(action)
 
     private fun evaluate(action: GameAction, state: GameState): Int {
-        val newState = action.apply(state)
+        val newState = action.simulate(state)
         return BotEvaluationService.count(newState)
     }
 }

@@ -1,5 +1,6 @@
 package ch.chrigu.wotr
 
+import ch.chrigu.wotr.bot.BotActionFactory
 import ch.chrigu.wotr.commands.WotrPromptProvider
 import ch.chrigu.wotr.figure.FiguresCompletionProvider
 import ch.chrigu.wotr.figure.ReinforcementsCompletionProvider
@@ -22,7 +23,7 @@ import org.springframework.shell.test.autoconfigure.ShellTest
 import java.util.concurrent.TimeUnit
 
 @ShellTest
-@Import(WotrPromptProvider::class, GameStateHolder::class)
+@Import(WotrPromptProvider::class, GameStateHolder::class, BotActionFactory::class)
 class CommandShellTest(@Autowired private val client: ShellTestClient) {
     private lateinit var session: BaseShellSession<*>
 

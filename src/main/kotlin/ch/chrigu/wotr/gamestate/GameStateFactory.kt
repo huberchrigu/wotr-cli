@@ -9,8 +9,10 @@ import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.location.LocationName.*
 import ch.chrigu.wotr.location.LocationType
 import ch.chrigu.wotr.location.LocationType.*
+import ch.chrigu.wotr.nation.Nation
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.nation.NationName.*
+import ch.chrigu.wotr.player.Player
 
 object GameStateFactory {
 
@@ -163,7 +165,18 @@ object GameStateFactory {
         l(KHAND, listOf(NEAR_HARAD, FAR_HARAD), SOUTHRONS_AND_EASTERLINGS)
     )
 
-    fun newGame() = GameState(LocationName.entries.associateWith { getLocation(it) }, createReinforcements(), createCompanions())
+    fun newGame() = GameState(LocationName.entries.associateWith { getLocation(it) }, createNations(), createReinforcements(), createCompanions())
+
+    private fun createNations() = NationName.entries.filter { it != FREE_PEOPLE }
+        .associateWith { Nation(getBoxNumber(it), getNationActive(it), it) }
+
+    private fun getBoxNumber(nationName: NationName) = when (nationName) {
+        SAURON, ISENGARD -> 1
+        GONDOR, SOUTHRONS_AND_EASTERLINGS -> 2
+        else -> 3
+    }
+
+    private fun getNationActive(nationName: NationName) = nationName.player == Player.SHADOW || nationName == ELVES
 
     private fun getLocation(name: LocationName) = initLocations.first { it.name == name }
 
