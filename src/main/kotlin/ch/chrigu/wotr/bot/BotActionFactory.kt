@@ -1,5 +1,6 @@
 package ch.chrigu.wotr.bot
 
+import ch.chrigu.wotr.action.AssignEyesAndThrowDiceAction
 import ch.chrigu.wotr.action.DieActionFactory
 import ch.chrigu.wotr.action.GameAction
 import ch.chrigu.wotr.gamestate.GameState
@@ -17,11 +18,12 @@ class BotActionFactory(private val strategies: List<BotStrategy>) {
     }
 
     private fun combine(action: GameAction, remainder: List<GameAction>): List<GameAction> {
+        if (remainder.isEmpty()) return listOf(action)
         val combinations = remainder.mapNotNull { it.tryToCombine(action) } + remainder
         return listOf(action) + combine(combinations.first(), combinations.drop(1))
     }
 
-    private fun withDice(action: GameAction, dieActionFactory: DieActionFactory) = if (action is ThrowDiceStrategy)
+    private fun withDice(action: GameAction, dieActionFactory: DieActionFactory) = if (action is AssignEyesAndThrowDiceAction)
         listOf(action)
     else
         dieActionFactory.everyCombination(action)

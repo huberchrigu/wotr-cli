@@ -23,6 +23,7 @@ class MoveArmyStrategy(private val terminal: Terminal) : BotStrategy {
     }
 
     private fun toMoveActions(location: Location) = combinations(location.nonBesiegedFigures)
+        .filter { !it.isEmpty() }
         .flatMap { figures ->
             location.adjacentLocations.map { MoveAction(location.name, it, figures) }
         }

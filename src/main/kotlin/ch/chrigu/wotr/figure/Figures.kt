@@ -8,10 +8,10 @@ import kotlin.math.min
 
 data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LOCATION) {
     init {
-        require(all.distinct().size == all.size)
+        require(all.distinct().size == all.size) { "Figures $all are not unique" }
         if (type != FiguresType.REINFORCEMENTS) {
             require(getArmy().all { it.nation.player == armyPlayer }) { "All army members must be of the same player: ${getArmy()}" }
-            require((all - getArmy().toSet()).all { !it.type.isUnit && (it.nation.player != armyPlayer || !it.type.canBePartOfArmy) && it.type.isUniqueCharacter })
+            require((all - getArmy().toSet()).all { !it.type.isUnit && (it.nation.player != armyPlayer || !it.type.canBePartOfArmy) && it.isCharacterOrNazgul() })
             { "All figures not belonging to an army must be the other's player unique character: ${(all - getArmy().toSet())}" }
             require(numUnits() <= 10) { "There must not be more than 10 units, but was ${numUnits()}" }
             if (numUnits() == 0) {

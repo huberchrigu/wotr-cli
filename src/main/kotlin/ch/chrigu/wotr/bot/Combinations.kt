@@ -7,13 +7,13 @@ object Combinations {
         else {
             val first = listOf(all.first())
             val other = allSizes(all.drop(1))
-            return listOf(first) + other.map { first + it } + other
+            return other.map { first + it } + other
         }
     }
 
     fun <T> ofSize(all: List<T>, size: Int): List<List<T>> {
         if (all.size < size) return emptyList()
         if (size == 1) return all.map { listOf(it) }
-        return all.flatMap { pick -> ofSize(all - pick, size - 1).map { listOf(pick) + it } }
+        return all.flatMapIndexed { index, pick -> ofSize(all.drop(index + 1), size - 1).map { listOf(pick) + it } }
     }
 }
