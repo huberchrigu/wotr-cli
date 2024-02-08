@@ -9,18 +9,15 @@ import ch.chrigu.wotr.player.Player
 
 data class Location(
     val name: LocationName,
-    val adjacentLocations: List<LocationName>,
-    val nation: NationName?,
-    val type: LocationType,
     val nonBesiegedFigures: Figures,
     val besiegedFigures: Figures = Figures(emptyList()),
     val captured: Boolean = false
 ) {
     init {
-        if (nation == null) {
-            require(type == LocationType.NONE || type == LocationType.FORTIFICATION) { "This location must have a nation: $this" }
+        if (name.nation == null) {
+            require(name.type == LocationType.NONE || name.type == LocationType.FORTIFICATION) { "This location must have a nation: $this" }
         }
-        if (type != LocationType.STRONGHOLD) {
+        if (name.type != LocationType.STRONGHOLD) {
             require(besiegedFigures.isEmpty()) { "Only strongholds may have besieged figures: $this" }
         } else if (!besiegedFigures.isEmpty()) {
             require(!nonBesiegedFigures.isEmpty()) { "Besieged figures require besieging figures: $this" }
@@ -28,6 +25,10 @@ data class Location(
         require(nonBesiegedFigures.type == FiguresType.LOCATION) { "Figures must have location type: $this" }
         require(besiegedFigures.type == FiguresType.LOCATION) { "Figures must have location type: $this" }
     }
+
+    val adjacentLocations: List<LocationName> = name.adjacent()
+    val nation: NationName? = name.nation
+    val type: LocationType = name.type
 
     val victoryPoints: Int
         get() = if (type == LocationType.STRONGHOLD) 2 else if (type == LocationType.CITY) 1 else 0
