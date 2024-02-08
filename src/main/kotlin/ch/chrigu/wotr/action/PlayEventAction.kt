@@ -10,6 +10,10 @@ class PlayEventAction(private val type: EventType, private val terminal: Termina
         return oldState
     }
 
+    override fun simulate(oldState: GameState): GameState {
+        return oldState
+    }
+
     override fun requiredDice() = setOf(DieType.EVENT) + if (type == EventType.CHARACTER)
         setOf(DieType.CHARACTER)
     else

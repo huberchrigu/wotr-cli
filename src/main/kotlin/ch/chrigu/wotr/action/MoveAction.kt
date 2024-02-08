@@ -4,6 +4,7 @@ import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
+import kotlin.math.max
 
 class MoveAction(private val fromLocation: LocationName, private val toLocation: LocationName, val figures: Figures) : GameAction {
     init {
@@ -15,7 +16,9 @@ class MoveAction(private val fromLocation: LocationName, private val toLocation:
 
     override fun tryToCombine(other: GameAction): GameAction? {
         if (other is MoveAction && fromLocation == other.fromLocation && toLocation == other.toLocation) {
-            return MoveAction(fromLocation, toLocation, figures + other.figures)
+            val union = figures.union(other.figures)
+            if (union.all.size == max(figures.all.size, other.figures.all.size)) return null
+            return MoveAction(fromLocation, toLocation, union)
         }
         return null
     }

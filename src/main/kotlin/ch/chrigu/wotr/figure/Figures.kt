@@ -57,6 +57,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     fun getArmyPerNation() = getArmy().groupBy { it.nation }
 
     fun intersect(other: Figures) = copy(all = all.intersect(other.all.toSet()).toList())
+    fun union(other: Figures) = copy(all = all.union(other.all).toList())
 
     fun numElites() = numElites(all)
     fun numRegulars() = numRegulars(all)
