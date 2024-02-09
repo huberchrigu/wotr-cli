@@ -16,7 +16,7 @@ data class Fellowship(val progress: Int = 0, val corruption: Int = 0, val mordor
     }
 
     fun numStepsLeft(state: GameState) = if (mordor == null)
-        getFellowshipLocation(state).getShortestPath(state, LocationName.MORANNON, LocationName.MINAS_MORGUL)
+        getFellowshipLocation(state).getShortestPath(LocationName.MORANNON, LocationName.MINAS_MORGUL)
             .first().getLength() + MORDOR_STEPS
     else
         MORDOR_STEPS - mordor

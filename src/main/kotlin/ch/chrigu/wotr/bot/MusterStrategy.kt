@@ -63,7 +63,7 @@ class MusterStrategy(private val terminal: Terminal) : BotStrategy {
     }
 
     private fun unit(state: GameState, location: Location, type: FigureType): MusterFiguresAction? {
-        val unit = state.reinforcements.all.firstOrNull { it.type == type }
+        val unit = state.reinforcements.all.firstOrNull { it.type == type && it.nation == location.nation }
         return unit?.let { MusterFiguresAction(Figures(listOf(unit)), location.name) }
     }
 }

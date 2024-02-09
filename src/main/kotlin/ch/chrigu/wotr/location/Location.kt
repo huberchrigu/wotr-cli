@@ -22,6 +22,9 @@ data class Location(
         } else if (!besiegedFigures.isEmpty()) {
             require(!nonBesiegedFigures.isEmpty()) { "Besieged figures require besieging figures: $this" }
         }
+        if (currentlyOccupiedBy() == Player.FREE_PEOPLE && name.type == LocationType.STRONGHOLD && besiegedFigures.isEmpty()) {
+            require(nonBesiegedFigures.all.none { it.isCharacterOrNazgul() && it.nation.player == Player.SHADOW }) { "Nazgul and minions may not entered strongholds controlled by free people" }
+        }
         require(nonBesiegedFigures.type == FiguresType.LOCATION) { "Figures must have location type: $this" }
         require(besiegedFigures.type == FiguresType.LOCATION) { "Figures must have location type: $this" }
     }
@@ -59,8 +62,8 @@ data class Location(
 
     fun allFigures() = nonBesiegedFigures.all + besiegedFigures.all
 
-    fun getShortestPath(state: GameState, from: LocationName, to: LocationName): List<LocationPath> {
-        return LocationFinder(state).getShortestPath(from, to)
+    fun getShortestPath(from: LocationName, to: LocationName): List<LocationPath> {
+        return LocationFinder.getShortestPath(from, to)
     }
 
     fun adjacentArmies(player: Player, gameState: GameState) = adjacentLocations
@@ -70,12 +73,12 @@ data class Location(
 
     fun nearestLocationWith(state: GameState, condition: (Location) -> Boolean): Int {
         val candidates = state.location.values.filter(condition)
-        return candidates.minOf { LocationFinder(state).getDistance(name, it.name) }
+        return candidates.minOf { LocationFinder.getDistance(name, it.name) }
     }
 
     fun distanceTo(state: GameState, condition: (Location) -> Boolean): Map<Location, Int> {
         val candidates = state.location.values.filter(condition)
-        return candidates.associateWith { LocationFinder(state).getDistance(name, it.name) }
+        return candidates.associateWith { LocationFinder.getDistance(name, it.name) }
     }
 
     override fun toString() = name.fullName + ": " + nonBesiegedFigures.toString() + printStronghold()

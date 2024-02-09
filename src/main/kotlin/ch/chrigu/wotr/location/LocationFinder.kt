@@ -1,33 +1,47 @@
 package ch.chrigu.wotr.location
 
-import ch.chrigu.wotr.gamestate.GameState
+import java.util.*
 
-class LocationFinder(private val state: GameState) {
+object LocationFinder {
+    private val cache = Collections.synchronizedMap(HashMap<LocationName, List<GraphNode>>())
+
     fun getDistance(from: LocationName, to: LocationName) = getShortestPath(from, to).first().getLength()
-    fun getShortestPath(from: LocationName, to: LocationName): List<LocationPath> { // TODO: Cache and use getShortestPath from adjacent paths
-        val all = getAllPaths(from, to)
-        val shortest = all.minOf { it.getLength() }
-        return all.filter { it.getLength() == shortest }
+    fun getShortestPath(from: LocationName, to: LocationName): List<LocationPath> {
+        val graph = cache[from] ?: initGraph(from)
+        return visit(graph, from, graph.first { it.name == to })
     }
 
-    private fun getAllPaths(from: LocationName, to: LocationName) = if (from == to)
+    private fun visit(graph: List<GraphNode>, from: LocationName, to: GraphNode): List<LocationPath> = if (from == to.name)
         listOf(LocationPath(emptyList()))
     else
-        adjacent(from).flatMap { visit(it, to, listOf(from)) }
+        to.previous.flatMap { visit(graph, from, it) }.map { it + LocationPath(listOf(to.name)) }
 
-    private fun adjacent(from: LocationName) = state.location[from]!!.adjacentLocations
-
-    private fun visit(next: LocationName, goal: LocationName, visited: List<LocationName>): List<LocationPath> {
-        val path = LocationPath(listOf(next))
-        if (next == goal) {
-            return listOf(path)
+    private fun initGraph(from: LocationName): List<GraphNode> {
+        val graph = LocationName.entries.map { if (it == from) GraphNode(it, distance = 0) else GraphNode(it) }
+        val visit = LocationName.entries.toMutableSet()
+        while (visit.isNotEmpty()) {
+            val minDistance = graph.filter { visit.contains(it.name) && it.distance != null }.minBy { it.distance!! }
+            visit.remove(minDistance.name)
+            minDistance.name.adjacent()
+                .map { neighbor -> graph.first { it.name == neighbor } }
+                .forEach { neighbor ->
+                    val newDistance = minDistance.distance!! + 1
+                    if (neighbor.distance == null || newDistance < neighbor.distance!!) {
+                        neighbor.distance = newDistance
+                        neighbor.previous = mutableListOf(minDistance)
+                    } else if (neighbor.distance == newDistance) {
+                        neighbor.previous.add(minDistance)
+                    }
+                }
         }
-        return (adjacent(next) - visited.toSet()).flatMap { visit(it, goal, visited + listOf(next)) }
-            .map { path + it }
+        cache[from] = graph
+        return graph
     }
+
+    data class GraphNode(val name: LocationName, var previous: MutableList<GraphNode> = mutableListOf(), var distance: Int? = null)
 }
 
-data class LocationPath(private val locations: List<LocationName>) {
+data class LocationPath(val locations: List<LocationName>) {
     fun getLength() = locations.size
 
     operator fun plus(other: LocationPath) = LocationPath(locations + other.locations)

@@ -9,6 +9,10 @@ class DieAction(private val use: DieUsage, private val actions: List<GameAction>
         return oldState.useDie(use).let { initial -> actions.fold(initial) { state, action -> action.apply(state) } }
     }
 
+    override fun simulate(oldState: GameState): GameState {
+        return oldState.useDie(use).let { initial -> actions.fold(initial) { state, action -> action.simulate(state) } }
+    }
+
     override fun tryToCombine(other: GameAction): GameAction? {
         if (other !is DieAction || use != other.use) return null
         val combined = if (actions.size == 1 && other.actions.size == 1)
