@@ -12,7 +12,7 @@ import org.jline.terminal.Terminal
 /**
  * @param defenderLocation If null, it is a sortie or a siege battle.
  */
-class AttackAction(
+data class AttackAction(
     private val terminal: Terminal,
     private val attacker: Figures,
     private val defender: Figures,

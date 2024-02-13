@@ -5,6 +5,7 @@ import ch.chrigu.wotr.action.MusterAction
 import ch.chrigu.wotr.figure.Figure
 import ch.chrigu.wotr.figure.FigureType
 import ch.chrigu.wotr.figure.Figures
+import ch.chrigu.wotr.figure.FiguresType
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.location.LocationType
@@ -39,7 +40,7 @@ class CombatSimulator(
 data class Casualties(private val at: LocationName, private val from: Figures, private val hits: Int) {
     fun apply(state: GameState) = initActions(state.reinforcements).fold(state) { a, b -> b.apply(a) }
 
-    private fun initActions(reinforcements: Figures) = takeCasualty(from, hits, reinforcements.all.filter { it.type == FigureType.REGULAR })
+    private fun initActions(reinforcements: Figures) = takeCasualty(from.copy(type = FiguresType.REINFORCEMENTS), hits, reinforcements.all.filter { it.type == FigureType.REGULAR })
         .fold(Casualty.zero()) { a, b -> a + b }
         .let {
             listOfNotNull(

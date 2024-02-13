@@ -4,7 +4,7 @@ import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.dice.DieUsage
 import ch.chrigu.wotr.gamestate.GameState
 
-class DieAction(private val use: DieUsage, private val actions: List<GameAction>) : GameAction {
+data class DieAction(private val use: DieUsage, private val actions: List<GameAction>) : GameAction {
     override fun apply(oldState: GameState): GameState {
         return oldState.useDie(use).let { initial -> actions.fold(initial) { state, action -> action.apply(state) } }
     }

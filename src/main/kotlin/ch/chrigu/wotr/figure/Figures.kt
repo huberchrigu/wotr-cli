@@ -12,7 +12,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
         if (type != FiguresType.REINFORCEMENTS) {
             require(getArmy().all { it.nation.player == armyPlayer }) { "All army members must be of the same player: ${getArmy()}" }
             require((all - getArmy().toSet()).all { !it.type.isUnit && (it.nation.player != armyPlayer || !it.type.canBePartOfArmy) && it.isCharacterOrNazgul() })
-            { "All figures not belonging to an army must be the other's player unique character: ${(all - getArmy().toSet())}" }
+            { "All figures not belonging to an army must be the other's player unique character: ${all - getArmy().toSet()}" }
             require(numUnits() <= 10) { "There must not be more than 10 units, but was ${numUnits()}" }
             if (numUnits() == 0) {
                 require(all.none { it.isFreePeopleLeader }) { "Free people leaders must not exist without army units: $all" }

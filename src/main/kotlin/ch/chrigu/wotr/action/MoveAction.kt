@@ -6,7 +6,7 @@ import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 import kotlin.math.max
 
-class MoveAction(private val fromLocation: LocationName, private val toLocation: LocationName, val figures: Figures) : GameAction {
+data class MoveAction(private val fromLocation: LocationName, private val toLocation: LocationName, val figures: Figures) : GameAction {
     init {
         require(!figures.isEmpty()) { "Move action requires at least one figure" }
         require(fromLocation != toLocation) { "Move action must have two different locations" }

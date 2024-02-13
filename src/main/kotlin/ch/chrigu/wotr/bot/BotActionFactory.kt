@@ -12,15 +12,16 @@ class BotActionFactory(private val strategies: List<BotStrategy>) {
         val dieActionFactory = DieActionFactory(state)
         val singleActions = strategies.flatMap { it.getActions(state) }
             .flatMap { withDice(it, dieActionFactory) }
-        val combinedActions = combine(singleActions.first(), singleActions.drop(1))
+            .toSet()
+        val combinedActions = combine(singleActions.first(), singleActions.drop(1).toSet()) // TODO: Find a way to reduce num of iterations (StackOverflowException)
         return combinedActions
             .maxBy { evaluate(it, state) }
     }
 
-    private fun combine(action: GameAction, remainder: List<GameAction>): List<GameAction> {
-        if (remainder.isEmpty()) return listOf(action)
+    private fun combine(action: GameAction, remainder: Set<GameAction>, depth: Int = 0): Set<GameAction> {
+        if (remainder.isEmpty()) return setOf(action)
         val combinations = remainder.mapNotNull { it.tryToCombine(action) } + remainder
-        return listOf(action) + combine(combinations.first(), combinations.drop(1))
+        return setOf(action) + combine(combinations.first(), combinations.drop(1).toSet(), depth + 1)
     }
 
     private fun withDice(action: GameAction, dieActionFactory: DieActionFactory) = if (action is AssignEyesAndThrowDiceAction)
