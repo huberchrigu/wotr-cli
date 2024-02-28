@@ -23,15 +23,18 @@ data class Location(
             require(!nonBesiegedFigures.isEmpty()) { "Besieged figures require besieging figures: $this" }
         }
         if (currentlyOccupiedBy() == Player.FREE_PEOPLE && name.type == LocationType.STRONGHOLD && besiegedFigures.isEmpty()) {
-            require(nonBesiegedFigures.all.none { it.isCharacterOrNazgul() && it.nation.player == Player.SHADOW }) { "Nazgul and minions may not entered strongholds controlled by free people" }
+            require(nonBesiegedFigures.all.none { it.isCharacterOrNazgul() && it.nation.player == Player.SHADOW }) { "Nazgul and minions may not enter strongholds controlled by free people" }
         }
         require(nonBesiegedFigures.type == FiguresType.LOCATION) { "Figures must have location type: $this" }
         require(besiegedFigures.type == FiguresType.LOCATION) { "Figures must have location type: $this" }
     }
 
-    val adjacentLocations: List<LocationName> = name.adjacent()
-    val nation: NationName? = name.nation
-    val type: LocationType = name.type
+    val adjacentLocations: List<LocationName>
+        get() = name.adjacent()
+    val nation: NationName?
+        get() = name.nation
+    val type: LocationType
+        get() = name.type
 
     val victoryPoints: Int
         get() = if (type == LocationType.STRONGHOLD) 2 else if (type == LocationType.CITY) 1 else 0

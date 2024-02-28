@@ -21,6 +21,7 @@ class HarmFellowshipStrategy(private val terminal: Terminal) : BotStrategy {
             getArmyAction(state)
 
     private fun getNazgulAction(state: GameState) = state.findAll { it.isNazgulOrWitchKing() }
+        .filter { (location, _) -> location != state.fellowshipLocation }
         .map { (location, figure) -> MoveAction(location.name, state.fellowshipLocation.name, Figures(listOf(figure))) }
 
     private fun getArmyAction(state: GameState): List<GameAction> {

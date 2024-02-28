@@ -53,6 +53,12 @@ data class DiceAndRings(val rolled: List<DieType>, val rings: Int, val player: P
     private fun noRings() = rings == 0 || ringsUsed
 }
 
-enum class DieType { ARMY, MUSTER, ARMY_MUSTER, EYE, WILL_OF_THE_WEST, EVENT, CHARACTER }
+enum class DieType {
+    ARMY, MUSTER, ARMY_MUSTER, EYE, WILL_OF_THE_WEST, EVENT, CHARACTER;
 
-data class DieUsage(val use: DieType, val useRing: Boolean, val player: Player)
+    override fun toString() = name.lowercase().replace('_', ' ');
+}
+
+data class DieUsage(val use: DieType, val useRing: Boolean, val player: Player) {
+    override fun toString() = if (useRing) "ring" else use.toString()
+}
