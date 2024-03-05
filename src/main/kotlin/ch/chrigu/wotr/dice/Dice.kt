@@ -32,7 +32,7 @@ data class DiceAndRings(val rolled: List<DieType>, val rings: Int, val player: P
 
     fun use(dieUsage: DieUsage): DiceAndRings {
         check(!dieUsage.useRing || !noRings())
-        return copy(rolled = rolled - listOf(dieUsage.use).toSet(), rings = if (dieUsage.useRing) rings - 1 else rings, ringsUsed = if (dieUsage.useRing) true else ringsUsed)
+        return copy(rolled = removeOneDie(dieUsage.use), rings = if (dieUsage.useRing) rings - 1 else rings, ringsUsed = if (dieUsage.useRing) true else ringsUsed)
     }
 
     fun roll(num: Int) = copy(rolled = (0 until num).map { rollDie() }, ringsUsed = false, huntBox = emptyList())
@@ -49,14 +49,23 @@ data class DiceAndRings(val rolled: List<DieType>, val rings: Int, val player: P
         return matchingDice.map { DieUsage(it, false, player) } + withRing
     }
 
+    override fun toString() = (rolled + (0 until rings).map { "X" }).joinToString(" ") + huntBoxToString()
+
+    private fun removeOneDie(type: DieType): List<DieType> {
+        val useIndex = rolled.indexOf(type)
+        return rolled.subList(0, useIndex) + rolled.subList(useIndex + 1, rolled.size)
+    }
+
+    private fun huntBoxToString() = if (huntBox.isEmpty()) "" else " / " + huntBox.joinToString(" ")
+
     private fun rollDie() = player.dieFace[Random.nextInt(6)]
     private fun noRings() = rings == 0 || ringsUsed
 }
 
-enum class DieType {
-    ARMY, MUSTER, ARMY_MUSTER, EYE, WILL_OF_THE_WEST, EVENT, CHARACTER;
+enum class DieType(private val shortName: String? = null) {
+    ARMY, MUSTER, ARMY_MUSTER("AM"), EYE, WILL_OF_THE_WEST, EVENT("P"), CHARACTER;
 
-    override fun toString() = name.lowercase().replace('_', ' ');
+    override fun toString() = shortName ?: name.take(1)
 }
 
 data class DieUsage(val use: DieType, val useRing: Boolean, val player: Player) {

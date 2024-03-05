@@ -25,7 +25,7 @@ class BotActionFactoryTest(@Autowired private val testee: BotActionFactory) {
         while (gameState.vpShadow() < 10) {
             val next = testee.getNext(gameState)
             gameState = next.simulate(gameState)
-            println("$next -> $gameState")
+            println("$next ->\n$gameState")
         }
     }
 
