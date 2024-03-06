@@ -21,6 +21,7 @@ data class DieAction(private val use: DieUsage, private val actions: List<GameAc
         if (combined != null) return DieAction(use, listOf(combined))
         val allActions = actions + other.actions
         if (!allActions.all { it is MoveAction }) return null
+        if (allActions.sumOf { (it as MoveAction).figures.numUnits() } > 10) return null
         val figures1 = actions.map { (it as MoveAction).figures }.reduce { a, b -> a + b }
         val figures2 = other.actions.map { (it as MoveAction).figures }.reduce { a, b -> a + b }
         if (!figures1.intersect(figures2).isEmpty()) return null

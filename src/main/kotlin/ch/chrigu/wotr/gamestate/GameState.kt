@@ -52,7 +52,7 @@ data class GameState(
     fun updateNation(name: NationName, modifier: Nation.() -> Nation) = copy(nation = nation + (name to nation[name]!!.run(modifier)))
 
     override fun toString() = "FP: ${dice.freePeople} [VP: ${getVictoryPoints(Player.FREE_PEOPLE)}, Pr: ${fellowship.progress}]\n" +
-            "SW: ${dice.shadow} [VP: ${getVictoryPoints(Player.SHADOW)}, Co: ${fellowship.corruption}, $cards]"
+            "SH: ${dice.shadow} [VP: ${getVictoryPoints(Player.SHADOW)}, Co: ${fellowship.corruption}, $cards]"
 
     private fun has(figureType: FigureType) = location.values.any { l -> l.allFigures().any { f -> f.type == figureType } }
 

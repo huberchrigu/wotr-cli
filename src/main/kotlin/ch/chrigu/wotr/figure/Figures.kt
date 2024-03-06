@@ -88,7 +88,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     private fun numElites(figures: List<Figure>) = figures.count { it.type == FigureType.ELITE }
     private fun numRegulars(figures: List<Figure>) = figures.count { it.type == FigureType.REGULAR }
 
-    private fun numUnits() = all.count { it.type.isUnit }
+    fun numUnits() = all.count { it.type.isUnit }
 
     private fun take(type: FigureType) = all.first { it.type == type }
 
@@ -97,7 +97,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
         val list = allOfType.filter { nation == null || nation == it.nation }.take(num)
         check(list.size == num)
         if (num > 0 && nation == null) {
-            check(allOfType.all { it.nation == allOfType[0].nation })
+            check(allOfType.all { it.nation == allOfType[0].nation }) { "No clear nation in $allOfType" }
         }
         return list
     }
