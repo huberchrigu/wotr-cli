@@ -1,5 +1,6 @@
 package ch.chrigu.wotr.bot
 
+import ch.chrigu.wotr.card.Cards
 import ch.chrigu.wotr.dice.Dice
 import ch.chrigu.wotr.dice.DiceAndRings
 import ch.chrigu.wotr.dice.DieType
@@ -13,12 +14,14 @@ import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationType
 import ch.chrigu.wotr.player.Player
 import kotlin.math.max
+import kotlin.math.min
 
 object BotEvaluationService {
     fun count(state: GameState) = count(state.dice) +
             countVp(state) +
             count(state.fellowship, state) +
-            state.location.values.sumOf { count(it, state) }
+            state.location.values.sumOf { count(it, state) } +
+            count(state.cards)
 
     private fun countVp(state: GameState) = if (state.vpShadow() >= 10)
         100
@@ -100,4 +103,6 @@ object BotEvaluationService {
             1
         return modifier * points
     }
+
+    private fun count(cards: Cards) = min(4, cards.numCards())
 }

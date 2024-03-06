@@ -1,5 +1,6 @@
 package ch.chrigu.wotr.gamestate
 
+import ch.chrigu.wotr.card.Cards
 import ch.chrigu.wotr.dice.Dice
 import ch.chrigu.wotr.dice.DieUsage
 import ch.chrigu.wotr.fellowship.Fellowship
@@ -19,7 +20,8 @@ data class GameState(
     val reinforcements: Figures,
     val companions: List<Figure>,
     val fellowship: Fellowship = Fellowship(),
-    val dice: Dice = Dice()
+    val dice: Dice = Dice(),
+    val cards: Cards = Cards()
 ) {
     init {
         require(reinforcements.type == FiguresType.REINFORCEMENTS)
@@ -50,7 +52,7 @@ data class GameState(
     fun updateNation(name: NationName, modifier: Nation.() -> Nation) = copy(nation = nation + (name to nation[name]!!.run(modifier)))
 
     override fun toString() = "FP: ${dice.freePeople} [VP: ${getVictoryPoints(Player.FREE_PEOPLE)}, Pr: ${fellowship.progress}]\n" +
-            "SW: ${dice.shadow} [VP: ${getVictoryPoints(Player.SHADOW)}, Co: ${fellowship.corruption}]"
+            "SW: ${dice.shadow} [VP: ${getVictoryPoints(Player.SHADOW)}, Co: ${fellowship.corruption}, $cards]"
 
     private fun has(figureType: FigureType) = location.values.any { l -> l.allFigures().any { f -> f.type == figureType } }
 

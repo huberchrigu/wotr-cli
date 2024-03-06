@@ -1,5 +1,6 @@
 package ch.chrigu.wotr.action
 
+import ch.chrigu.wotr.card.EventType
 import ch.chrigu.wotr.combat.CombatSimulator
 import ch.chrigu.wotr.combat.CombatType
 import ch.chrigu.wotr.dice.DieType

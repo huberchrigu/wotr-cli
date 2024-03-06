@@ -1,6 +1,6 @@
 package ch.chrigu.wotr.bot
 
-import ch.chrigu.wotr.action.EventType
+import ch.chrigu.wotr.card.EventType
 import ch.chrigu.wotr.action.GameAction
 import ch.chrigu.wotr.action.MoveAction
 import ch.chrigu.wotr.action.PlayEventAction

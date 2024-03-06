@@ -9,6 +9,3 @@ interface BotStrategy {
      */
     fun getActions(state: GameState): List<GameAction>
 }
-
-@Deprecated("Use actions and evaluate points later")
-data class ProposedBotAction(val points: Int, val action: GameAction)

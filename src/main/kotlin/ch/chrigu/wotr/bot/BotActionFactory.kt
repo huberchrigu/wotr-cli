@@ -17,6 +17,7 @@ class BotActionFactory(private val strategies: List<BotStrategy>) {
             .toSet()
             .mapNotNull { EvaluatedAction.create(it, state) }
             .toSortedSet()
+        check(singleActions.isNotEmpty()) { "There is no possible bot action" }
         val combinedActions = combineFirst(min(10, singleActions.size), singleActions)
         return combinedActions.first().action
     }

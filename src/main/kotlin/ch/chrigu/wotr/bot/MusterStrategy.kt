@@ -1,6 +1,7 @@
 package ch.chrigu.wotr.bot
 
 import ch.chrigu.wotr.action.*
+import ch.chrigu.wotr.card.EventType
 import ch.chrigu.wotr.figure.FigureType
 import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.gamestate.GameState
