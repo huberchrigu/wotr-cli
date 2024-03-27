@@ -13,7 +13,9 @@ import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.Nation
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class GameState(
     val location: Map<LocationName, Location>,
     val nation: Map<NationName, Nation>,

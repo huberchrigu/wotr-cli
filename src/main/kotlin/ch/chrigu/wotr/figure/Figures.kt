@@ -4,8 +4,10 @@ import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
+import kotlinx.serialization.Serializable
 import kotlin.math.min
 
+@Serializable
 data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LOCATION) {
     init {
         require(all.distinct().size == all.size) { "Figures $all are not unique" }

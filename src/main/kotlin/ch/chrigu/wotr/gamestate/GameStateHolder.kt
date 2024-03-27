@@ -34,6 +34,12 @@ class GameStateHolder {
 
     fun allowRedo() = currentIndex < history.size - 1
 
+    fun reset(newState: GameState) {
+        history.clear()
+        history.add(newState)
+        currentIndex = 0
+    }
+
     private fun removeFutureActions() {
         repeat(history.size - currentIndex - 1) { history.removeLast() }
     }

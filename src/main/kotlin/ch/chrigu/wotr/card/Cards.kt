@@ -1,9 +1,12 @@
 package ch.chrigu.wotr.card
 
+import kotlinx.serialization.Serializable
+
 /**
  * Yet we're interested in the number of shadow cards per type only. This is a simplification, but implementing all cards will
  * be a time intensive task.
  */
+@Serializable
 data class Cards(private val shadow: Map<EventType, Int> = EventType.entries.associateWith { 0 }) {
     init {
         require(shadow.values.all { it >= 0 }) { "Cannot play cards that are not drawn yet" }

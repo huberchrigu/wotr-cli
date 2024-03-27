@@ -1,5 +1,8 @@
 package ch.chrigu.wotr.nation
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Nation(val box: Int, val active: Boolean, val name: NationName) {
     init {
         require(box >= 0)

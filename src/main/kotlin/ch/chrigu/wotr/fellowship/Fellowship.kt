@@ -4,7 +4,9 @@ import ch.chrigu.wotr.figure.FigureType
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.player.Player
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Fellowship(val progress: Int = 0, val corruption: Int = 0, val mordor: Int? = null, val discovered: Boolean = false) {
     init {
         require(progress in 0..MAX_CORRUPTION) { "Progress should be between 0 and 12, but was $progress" }

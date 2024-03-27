@@ -6,7 +6,9 @@ import ch.chrigu.wotr.figure.FiguresType
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Location(
     val name: LocationName,
     val nonBesiegedFigures: Figures,

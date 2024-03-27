@@ -2,8 +2,10 @@ package ch.chrigu.wotr.dice
 
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.player.Player
+import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
+@Serializable
 data class Dice(val shadow: DiceAndRings = DiceAndRings(emptyList(), 0, Player.SHADOW), val freePeople: DiceAndRings = DiceAndRings(emptyList(), 3, Player.FREE_PEOPLE)) {
     fun useDie(dieUsage: DieUsage) = copy(
         shadow = if (dieUsage.player == Player.SHADOW) shadow.use(dieUsage) else shadow,
@@ -23,6 +25,7 @@ data class Dice(val shadow: DiceAndRings = DiceAndRings(emptyList(), 0, Player.S
     }
 }
 
+@Serializable
 data class DiceAndRings(val rolled: List<DieType>, val rings: Int, val player: Player, val ringsUsed: Boolean = false, val huntBox: List<DieType> = emptyList()) {
     init {
         require(rings in 0..3)
