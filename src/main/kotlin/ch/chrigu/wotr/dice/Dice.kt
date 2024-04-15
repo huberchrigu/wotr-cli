@@ -17,6 +17,10 @@ data class Dice(val shadow: DiceAndRings = DiceAndRings(emptyList(), 0, Player.S
         freePeople = freePeople.roll(4 + listOf(state.hasAragorn(), state.hasGandalfTheWhite()).sumOf { toInt(it) })
     )
 
+    fun fakeShadowRoll(vararg die: DieType) = copy(
+        shadow = shadow.fakeRoll(die.toList())
+    )
+
     private fun toInt(it: Boolean) = if (it) 1 else 0
 
     init {
@@ -39,6 +43,8 @@ data class DiceAndRings(val rolled: List<DieType>, val rings: Int, val player: P
     }
 
     fun roll(num: Int) = copy(rolled = (0 until num).map { rollDie() }, ringsUsed = false, huntBox = emptyList())
+
+    fun fakeRoll(dice: List<DieType>) = copy(rolled = dice, ringsUsed = false, huntBox = emptyList())
 
     fun assignAndRoll(num: Int, numEyes: Int): DiceAndRings {
         val roll = (0 until num - numEyes).map { rollDie() }

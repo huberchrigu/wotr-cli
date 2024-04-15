@@ -12,16 +12,27 @@ import ch.chrigu.wotr.figure.NumberedLevel
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationType
+import ch.chrigu.wotr.nation.Nation
 import ch.chrigu.wotr.player.Player
 import kotlin.math.max
 import kotlin.math.min
 
 object BotEvaluationService {
-    fun count(state: GameState) = count(state.dice) +
+    fun count(state: GameState) = countDice(state.dice) +
             countVp(state) +
-            count(state.fellowship, state) +
-            state.location.values.sumOf { count(it, state) } +
-            count(state.cards)
+            countFellowship(state.fellowship, state) +
+            state.location.values.sumOf { countLocation(it, state) } +
+            countCards(state.cards) +
+            countNations(state.nation.values)
+
+    private fun countNations(nations: Collection<Nation>) = nations.sumOf { if (it.name.player == Player.SHADOW) countNation(it) else -countNation(it) }
+
+    private fun countNation(nation: Nation) = if (nation.isOnWar())
+        10
+    else if (nation.active)
+        8 - nation.box
+    else
+        4 - nation.box
 
     private fun countVp(state: GameState) = if (state.vpShadow() >= 10)
         100
@@ -30,7 +41,7 @@ object BotEvaluationService {
     else
         5 * state.vpShadow() - 10 * state.vpFreePeople()
 
-    private fun count(dice: Dice) = count(dice.shadow, Player.SHADOW) - count(dice.freePeople, Player.FREE_PEOPLE)
+    private fun countDice(dice: Dice) = count(dice.shadow, Player.SHADOW) - count(dice.freePeople, Player.FREE_PEOPLE)
     private fun count(diceAndRings: DiceAndRings, player: Player) = 10 * diceAndRings.rings + diceAndRings.rolled
         .groupBy { it }.entries.sumOf { (type, list) ->
             when (type) {
@@ -42,7 +53,7 @@ object BotEvaluationService {
             }
         }
 
-    private fun count(fellowship: Fellowship, state: GameState) = if (fellowship.corruption >= Fellowship.MAX_CORRUPTION)
+    private fun countFellowship(fellowship: Fellowship, state: GameState) = if (fellowship.corruption >= Fellowship.MAX_CORRUPTION)
         100
     else if (fellowship.mordor != null && fellowship.mordor >= Fellowship.MORDOR_STEPS)
         -100
@@ -52,10 +63,10 @@ object BotEvaluationService {
                 fellowship.numRerolls(state) * 5 -
                 state.companions.sumOf { (it.type.level as? NumberedLevel)?.number ?: 0 } * 2
 
-    private fun count(location: Location, state: GameState): Int {
-        val figurePoints = location.allFigures().sumOf { count(it) }
+    private fun countLocation(location: Location, state: GameState): Int {
+        val figurePoints = location.allFigures().sumOf { countFigure(it) }
         val figures = location.nonBesiegedFigures
-        val armyPlayer = figures.armyPlayer ?: figurePoints
+        val armyPlayer = figures.armyPlayer
         val playerModifier = if (armyPlayer == Player.SHADOW) 1 else -1
         val siegeModifier = if (location.besiegedFigures.isEmpty()) 1 else 3
         val nearestLocationsToOccupy = location.distanceTo(state) { it.currentlyOccupiedBy()?.opponent == armyPlayer }
@@ -92,7 +103,7 @@ object BotEvaluationService {
 
     private fun armyValue(army: Figures) = army.combatRolls() + army.maxReRolls() + army.numElites() * 2 + army.numRegulars()
 
-    private fun count(figure: Figure): Int {
+    private fun countFigure(figure: Figure): Int {
         val modifier = if (figure.nation.player == Player.SHADOW) 1 else -1
         val type = figure.type
         val points = if (type.isUniqueCharacter)
@@ -104,5 +115,5 @@ object BotEvaluationService {
         return modifier * points
     }
 
-    private fun count(cards: Cards) = min(4, cards.numCards())
+    private fun countCards(cards: Cards) = min(4, cards.numCards())
 }
