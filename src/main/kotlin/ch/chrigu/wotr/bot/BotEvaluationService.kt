@@ -14,10 +14,13 @@ import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationType
 import ch.chrigu.wotr.nation.Nation
 import ch.chrigu.wotr.player.Player
+import org.slf4j.LoggerFactory
 import kotlin.math.max
 import kotlin.math.min
 
 object BotEvaluationService {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     fun count(state: GameState) = countDice(state.dice) +
             countVp(state) +
             countFellowship(state.fellowship, state) +
@@ -41,7 +44,7 @@ object BotEvaluationService {
     else
         5 * state.vpShadow() - 10 * state.vpFreePeople()
 
-    private fun countDice(dice: Dice) = count(dice.shadow, Player.SHADOW) - count(dice.freePeople, Player.FREE_PEOPLE)
+    private fun countDice(dice: Dice) = (count(dice.shadow, Player.SHADOW) - count(dice.freePeople, Player.FREE_PEOPLE)) / 2
     private fun count(diceAndRings: DiceAndRings, player: Player) = 10 * diceAndRings.rings + diceAndRings.rolled
         .groupBy { it }.entries.sumOf { (type, list) ->
             when (type) {
@@ -77,9 +80,10 @@ object BotEvaluationService {
             listOf(Triple(location, location.besiegedFigures, 0))
         val nearArmyThreat = nearestArmies.sumOf { (location, defender, distance) -> pointsAgainstArmy(figures, defender, distance, location) }
         val nearSettlementThreat = nearestLocationsToOccupy.entries.sumOf { (l, distance) -> pointsForOccupation(figures, l, distance) }
-        return figurePoints +
-                nearArmyThreat * playerModifier * siegeModifier +
-                nearSettlementThreat * playerModifier
+        val armyPoints = nearArmyThreat * playerModifier * siegeModifier
+        val settlementPoints = nearSettlementThreat * playerModifier
+        logger.debug("Points for {}: {} figurePoints + {} armyPoints + {} settlementPoints", location, figurePoints, armyPoints, settlementPoints)
+        return figurePoints + armyPoints + settlementPoints
     }
 
     private fun pointsForOccupation(attacker: Figures, location: Location, distance: Int): Int {
@@ -98,7 +102,8 @@ object BotEvaluationService {
             1.5f
         else
             1.0f
-        return max(0, armyValue(attacker) - Math.round(armyValue(defender) * defenderBonus))
+        val maxPoints = armyValue(attacker) - Math.round(armyValue(defender) * defenderBonus)
+        return max(0, maxPoints) * (5 - distance)
     }
 
     private fun armyValue(army: Figures) = army.combatRolls() + army.maxReRolls() + army.numElites() * 2 + army.numRegulars()

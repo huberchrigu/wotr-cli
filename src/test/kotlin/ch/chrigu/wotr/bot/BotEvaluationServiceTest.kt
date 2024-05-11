@@ -11,6 +11,7 @@ import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -29,6 +30,15 @@ class BotEvaluationServiceTest {
         val newState = action(initial).apply(initial)
         val newScore = BotEvaluationService.count(newState)
         assertThat(newScore).describedAs(description).isGreaterThan(initialScore)
+    }
+
+    @Test
+    fun `should assemble army before moving`() {
+        val umbarToWestHarandor = MoveAction(LocationName.UMBAR, LocationName.WEST_HARONDOR, Figures.parse(arrayOf("300"), LocationName.UMBAR, initial))
+        val farHaradToNearHarad = MoveAction(LocationName.FAR_HARAD, LocationName.NEAR_HARAD, Figures.parse(arrayOf("310"), LocationName.FAR_HARAD, initial))
+        val farHarad = BotEvaluationService.count(farHaradToNearHarad.apply(initial))
+        val umbar = BotEvaluationService.count(umbarToWestHarandor.apply(initial))
+        assertThat(farHarad).isGreaterThan(umbar)
     }
 
     class Args : ArgumentsProvider {
