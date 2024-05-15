@@ -74,8 +74,9 @@ object BotEvaluationService {
         val siegeModifier = if (location.besiegedFigures.isEmpty()) 1 else 3
         val nearestLocationsToOccupy = location.distanceTo(state) { it.currentlyOccupiedBy()?.opponent == armyPlayer }
         val nearestArmies = if (location.besiegedFigures.isEmpty())
-            location.distanceTo(state) { it.nonBesiegedFigures.armyPlayer?.opponent == armyPlayer }
+            location.nearestLocationWith(state) { it.nonBesiegedFigures.armyPlayer?.opponent == armyPlayer }
                 .map { (l, distance) -> Triple(l, l.nonBesiegedFigures, distance) }
+                .toList()
         else
             listOf(Triple(location, location.besiegedFigures, 0))
         val nearArmyThreat = nearestArmies.sumOf { (location, defender, distance) -> pointsAgainstArmy(figures, defender, distance, location) }

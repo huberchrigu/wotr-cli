@@ -76,9 +76,13 @@ data class Location(
         .filter { it.armyPlayer == player }
         .map { it.getArmy() }
 
-    fun nearestLocationWith(state: GameState, condition: (Location) -> Boolean): Int {
-        val candidates = state.location.values.filter(condition)
-        return candidates.minOf { LocationFinder.getDistance(name, it.name) }
+    fun nearestLocationWith(state: GameState, condition: (Location) -> Boolean): Sequence<Pair<Location, Int>> {
+        var minValue: Int? = null
+        return LocationFinder.getNearestLocations(name)
+            .map { (location, distance) -> state.location[location]!! to distance }
+            .filter { (location, _) -> condition(location) }
+            .onEach { if (minValue == null) minValue = it.second }
+            .takeWhile { it.second == minValue }
     }
 
     fun distanceTo(state: GameState, condition: (Location) -> Boolean): Map<Location, Int> {

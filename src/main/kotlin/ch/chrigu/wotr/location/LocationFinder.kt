@@ -3,13 +3,21 @@ package ch.chrigu.wotr.location
 import java.util.*
 
 object LocationFinder {
-    private val cache = Collections.synchronizedMap(HashMap<LocationName, List<GraphNode>>())
+    /**
+     * All locations sorted by distances per location.
+     */
+    private val cache = Collections.synchronizedMap(EnumMap<LocationName, List<GraphNode>>(LocationName::class.java))
 
-    fun getDistance(from: LocationName, to: LocationName) = getShortestPath(from, to).first().getLength()
+    fun getDistance(from: LocationName, to: LocationName) = getGraph(from).first { it.name == to }.distance!!
     fun getShortestPath(from: LocationName, to: LocationName): List<LocationPath> {
-        val graph = cache[from] ?: initGraph(from)
+        val graph = getGraph(from)
         return visit(graph, from, graph.first { it.name == to })
     }
+
+    fun getNearestLocations(from: LocationName) = getGraph(from)
+        .asSequence().map { it.name to it.distance!! }
+
+    private fun getGraph(from: LocationName) = cache[from] ?: initGraph(from)
 
     private fun visit(graph: List<GraphNode>, from: LocationName, to: GraphNode): List<LocationPath> = if (from == to.name)
         listOf(LocationPath(emptyList()))
@@ -34,8 +42,8 @@ object LocationFinder {
                     }
                 }
         }
-        cache[from] = graph
-        return graph
+        cache[from] = graph.sortedBy { it.distance }
+        return cache[from]!!
     }
 
     data class GraphNode(val name: LocationName, var previous: MutableList<GraphNode> = mutableListOf(), var distance: Int? = null)

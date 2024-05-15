@@ -13,7 +13,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Import
 import java.io.PrintWriter
 
-@SpringBootTest(classes = [BotActionFactory::class])
+@SpringBootTest(classes = [BotActionFactory::class], properties = ["logging.level.ch.chrigu.wotr.bot.BotActionFactory=DEBUG"])
 @Import(BotActionFactoryTest.Config::class)
 class BotActionFactoryTest(@Autowired private val testee: BotActionFactory) {
     @MockBean
