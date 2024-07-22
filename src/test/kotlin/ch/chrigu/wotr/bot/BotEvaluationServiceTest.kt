@@ -11,7 +11,6 @@ import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -32,13 +31,20 @@ class BotEvaluationServiceTest {
         assertThat(newScore).describedAs(description).isGreaterThan(initialScore)
     }
 
-    @Test
-    fun `should assemble army before moving`() {
-        val umbarToWestHarandor = MoveAction(LocationName.UMBAR, LocationName.WEST_HARONDOR, Figures.parse(arrayOf("300"), LocationName.UMBAR, initial))
-        val farHaradToNearHarad = MoveAction(LocationName.FAR_HARAD, LocationName.NEAR_HARAD, Figures.parse(arrayOf("310"), LocationName.FAR_HARAD, initial))
-        val farHarad = BotEvaluationService.count(farHaradToNearHarad.apply(initial))
-        val umbar = BotEvaluationService.count(umbarToWestHarandor.apply(initial))
-        assertThat(farHarad).isGreaterThan(umbar)
+    @ParameterizedTest(name = "{0}")
+    @ArgumentsSource(MoveActionArgs::class)
+    fun `should prefer move action over other action`(
+        description: String,
+        betterFrom: LocationName,
+        betterTo: LocationName,
+        betterWho: String,
+        worseFrom: LocationName,
+        worseTo: LocationName,
+        worseWho: String
+    ) {
+        val betterAction = countMove(betterFrom, betterTo, betterWho)
+        val worseAction = countMove(worseFrom, worseTo, worseWho)
+        assertThat(betterAction).isGreaterThan(worseAction)
     }
 
     class Args : ArgumentsProvider {
@@ -60,4 +66,17 @@ class BotEvaluationServiceTest {
             private fun toDieAction(): (GameState) -> GameAction = { DieAction(DieUsage(dieType, false, Player.SHADOW), listOf(action(it))) }
         }
     }
+
+    class MoveActionArgs : ArgumentsProvider {
+        override fun provideArguments(p0: ExtensionContext): Stream<Arguments> = Stream.of(
+            Arguments.of("should assemble army before moving", LocationName.FAR_HARAD, LocationName.NEAR_HARAD, "310", LocationName.UMBAR, LocationName.WEST_HARONDOR, "300"),
+            Arguments.of(
+                "should move directly to where an army can be a threat", LocationName.FAR_HARAD, LocationName.NEAR_HARAD, "310", LocationName.FAR_HARAD,
+                LocationName.KHAND, "310"
+            )
+        )
+    }
+
+    private fun countMove(from: LocationName, to: LocationName, who: String) = BotEvaluationService.count(move(from, to, who).apply(initial))
+    private fun move(from: LocationName, to: LocationName, who: String) = MoveAction(from, to, Figures.parse(arrayOf(who), from, initial))
 }
