@@ -40,7 +40,7 @@ object BotEvaluationService {
     private fun countVp(state: GameState) = if (state.vpShadow() >= 10)
         100
     else if (state.vpFreePeople() >= 4)
-        90
+        -90
     else
         5 * state.vpShadow() - 10 * state.vpFreePeople()
 
@@ -70,7 +70,7 @@ object BotEvaluationService {
         val figurePoints = location.allFigures().sumOf { countFigure(it) }
         val figures = location.nonBesiegedFigures
         val armyPlayer = figures.armyPlayer
-        val playerModifier = if (armyPlayer == Player.SHADOW) 1 else -1
+        val playerModifier = if (armyPlayer == Player.SHADOW) 1 else if (armyPlayer == Player.FREE_PEOPLE) -1 else 0
         val siegeModifier = if (location.besiegedFigures.isEmpty()) 1 else 3
         val nearestLocationsToOccupy = location.distanceTo(state) { it.currentlyOccupiedBy()?.opponent == armyPlayer }
         val nearestArmies = if (location.besiegedFigures.isEmpty())
