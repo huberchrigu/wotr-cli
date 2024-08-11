@@ -26,4 +26,8 @@ class Figure(val type: FigureType, val nation: NationName) {
     private fun getTypeString() = if (type == FigureType.LEADER_OR_NAZGUL) {
         if (nation.player == Player.FREE_PEOPLE) "Leader" else "Nazgul"
     } else type.toString()
+
+    companion object {
+        fun create(num: Int, type: FigureType, nationName: NationName) = (0 until num).map { Figure(type, nationName) }
+    }
 }

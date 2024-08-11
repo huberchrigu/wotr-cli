@@ -10,12 +10,15 @@ import ch.chrigu.wotr.gamestate.GameStateFactory
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
+import org.slf4j.LoggerFactory
 import java.util.stream.Stream
 
 class BotEvaluationServiceTest {
@@ -42,6 +45,8 @@ class BotEvaluationServiceTest {
         worseTo: LocationName,
         worseWho: String
     ) {
+        val root = LoggerFactory.getLogger(BotEvaluationService::class.java) as Logger
+        root.level = Level.DEBUG
         val betterAction = countMove(betterFrom, betterTo, betterWho)
         val worseAction = countMove(worseFrom, worseTo, worseWho)
         assertThat(betterAction).isGreaterThan(worseAction)
@@ -71,8 +76,7 @@ class BotEvaluationServiceTest {
         override fun provideArguments(p0: ExtensionContext): Stream<Arguments> = Stream.of(
             Arguments.of("should assemble army before moving", LocationName.FAR_HARAD, LocationName.NEAR_HARAD, "310", LocationName.UMBAR, LocationName.WEST_HARONDOR, "300"),
             Arguments.of(
-                "should move directly to where an army can be a threat", LocationName.FAR_HARAD, LocationName.NEAR_HARAD, "310", LocationName.FAR_HARAD,
-                LocationName.KHAND, "310"
+                "should move directly to where an army can be a threat", LocationName.FAR_HARAD, LocationName.NEAR_HARAD, "310", LocationName.FAR_HARAD, LocationName.KHAND, "310"
             )
         )
     }

@@ -112,5 +112,12 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
             else
                 FigureParser(who.toList()).select(figures, defaultNationName)
         }
+
+        fun empty() = Figures(emptyList())
+        fun create(regular: Int, elite: Int, leaderOrNazgul: Int, nationName: NationName) = Figures(
+            Figure.create(regular, FigureType.REGULAR, nationName) +
+                    Figure.create(elite, FigureType.ELITE, nationName) +
+                    Figure.create(leaderOrNazgul, FigureType.LEADER_OR_NAZGUL, nationName)
+        )
     }
 }
