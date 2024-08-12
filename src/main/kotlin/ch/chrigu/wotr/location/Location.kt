@@ -79,7 +79,7 @@ data class Location(
     fun nearestLocationWith(state: GameState, condition: (Location) -> Boolean): Sequence<Pair<Location, Int>> {
         var minValue: Int? = null
         return LocationFinder.getNearestLocations(name)
-            .map { (location, distance) -> state.location[location]!! to distance }
+            .mapNotNull { (location, distance) -> state.location[location]?.let { it to distance } }
             .filter { (location, _) -> condition(location) }
             .onEach { if (minValue == null) minValue = it.second }
             .takeWhile { it.second == minValue }

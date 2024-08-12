@@ -5,16 +5,10 @@ import ch.chrigu.wotr.dice.Dice
 import ch.chrigu.wotr.dice.DiceAndRings
 import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.fellowship.Fellowship
-import ch.chrigu.wotr.figure.Figure
-import ch.chrigu.wotr.figure.FigureType
-import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.figure.NumberedLevel
 import ch.chrigu.wotr.gamestate.GameState
-import ch.chrigu.wotr.location.Location
-import ch.chrigu.wotr.location.LocationType
 import ch.chrigu.wotr.nation.Nation
 import ch.chrigu.wotr.player.Player
-import org.slf4j.LoggerFactory
 import kotlin.math.max
 import kotlin.math.min
 
@@ -22,13 +16,11 @@ import kotlin.math.min
  * Computes a score for the situation of the shadow bot. Plus points are considered to be good for the shadow. Minus points for the free people.
  */
 object BotEvaluationService {
-    private val logger = LoggerFactory.getLogger(this::class.java)
-
     /**
      * The game state score is composed of:
      * * The [victory point score][countVp]
      * * The [fellowship score][countFellowship]
-     * * The sum of all [location scores][countLocation]
+     * * The sum of all [location scores][LocationEvaluationService.scoreFor]
      * * The [shadow card score][countCards]
      * * The [politics score of all nations][countNations]
      */

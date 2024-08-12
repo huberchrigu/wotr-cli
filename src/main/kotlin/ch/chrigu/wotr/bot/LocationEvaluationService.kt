@@ -14,29 +14,36 @@ import kotlin.math.max
 class LocationEvaluationService(private val state: GameState) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    /**
+     * Evaluates the score for this location:
+     * * Every single [figure gives some points][countFigure].
+     * * If there is an army, for any possible [capturing of an enemy-controller settlement][pointsForOccupation].
+     * * Also, [count points for any near army][pointsAgainstArmy].
+     */
     fun scoreFor(location: Location): Int {
         val figurePoints = location.allFigures().sumOf { countFigure(it) }
         val figures = location.nonBesiegedFigures
         val armyPlayer = figures.armyPlayer
         val playerModifier = if (armyPlayer == Player.SHADOW) 1 else if (armyPlayer == Player.FREE_PEOPLE) -1 else 0
-        val siegeModifier = if (location.besiegedFigures.isEmpty()) 1 else 3
-        val nearestLocationsToOccupy = location.distanceTo(state) { it.currentlyOccupiedBy()?.opponent == armyPlayer }
+        if (playerModifier == 0) return figurePoints
+        val nearestLocationsToOccupy = location.nearestLocationWith(state) { it.currentlyOccupiedBy()?.opponent == armyPlayer }
         val nearestArmies = if (location.besiegedFigures.isEmpty())
             location.nearestLocationWith(state) { it.nonBesiegedFigures.armyPlayer?.opponent == armyPlayer }
                 .map { (l, distance) -> Triple(l, l.nonBesiegedFigures, distance) }
                 .toList()
         else
             listOf(Triple(location, location.besiegedFigures, 0))
-        val nearArmyThreat = nearestArmies.sumOf { (location, defender, distance) -> pointsAgainstArmy(figures, defender, distance, location) }
-        val nearSettlementThreat = nearestLocationsToOccupy.entries.sumOf { (l, distance) -> pointsForOccupation(figures, l, distance) }
-        val armyPoints = nearArmyThreat * playerModifier * siegeModifier
+        val nearArmyThreat = nearestArmies.maxOf { (location, defender, distance) -> pointsAgainstArmy(figures, defender, distance, location) }
+        val nearSettlementThreat = nearestLocationsToOccupy.maxOf { (l, distance) -> pointsForOccupation(figures, l, distance) }
+        val armyPoints = nearArmyThreat * playerModifier
         val settlementPoints = nearSettlementThreat * playerModifier
         logger.debug("Points for {}: {} figurePoints + {} armyPoints + {} settlementPoints", location, figurePoints, armyPoints, settlementPoints)
-        return figurePoints + armyPoints + settlementPoints
+        return figurePoints + armyPoints + settlementPoints // TODO: Account merging armies
     }
 
+    // TODO: Account armies in between
     private fun pointsForOccupation(attacker: Figures, location: Location, distance: Int): Int {
-        val defender = if (distance == 0) location.besiegedFigures else location.nonBesiegedFigures
+        val defender = if (distance == 0) location.besiegedFigures else location.nonBesiegedFigures // TODO: A besieged location is computed wrongly
         return if (defender.armyPlayer == null)
             max(50 - distance * 2, 0) * (location.victoryPoints * 10 + 1)
         else
