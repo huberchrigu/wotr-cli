@@ -34,6 +34,7 @@ class LocationEvaluationService(private val state: GameState) {
             .flatMap { (to, _) -> LocationFinder.getShortestPath(location.name, to) }
             .map { scoreFor(location, it.locations) }
             .filter { it > 0 }
+            .sortedDescending()
             .take(5)
             .sum() * armyPlayer.toModifier()
     }
