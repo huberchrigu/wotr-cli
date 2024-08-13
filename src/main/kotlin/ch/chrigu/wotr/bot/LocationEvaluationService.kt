@@ -6,65 +6,123 @@ import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.figure.NumberedLevel
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.Location
+import ch.chrigu.wotr.location.LocationFinder
+import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.location.LocationType
 import ch.chrigu.wotr.player.Player
 import org.slf4j.LoggerFactory
 import kotlin.math.max
+import kotlin.math.min
 
 class LocationEvaluationService(private val state: GameState) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     /**
      * Evaluates the score for this location:
-     * * Every single [figure gives some points][countFigure].
-     * * If there is an army, for any possible [capturing of an enemy-controller settlement][pointsForOccupation].
-     * * Also, [count points for any near army][pointsAgainstArmy].
+     * * Every single [figure gives some points][scoreForFigure].
+     * * If there is an army, for any possible [capturing of an enemy-controller settlement][scoreForOccupation].
+     * * Also, [count points for any near enemy army][scoreForBattle], including [sieges][scoreForSiege].
+     * * Also, [count points for any possible army join][scoreForJoin].
      */
     fun scoreFor(location: Location): Int {
-        val figurePoints = location.allFigures().sumOf { countFigure(it) }
+        val figurePoints = location.allFigures().sumOf { scoreForFigure(it) }
+        logger.debug("figurePoints@{}: {}", location.name, figurePoints)
         val figures = location.nonBesiegedFigures
-        val armyPlayer = figures.armyPlayer
-        val playerModifier = if (armyPlayer == Player.SHADOW) 1 else if (armyPlayer == Player.FREE_PEOPLE) -1 else 0
-        if (playerModifier == 0) return figurePoints
-        val nearestLocationsToOccupy = location.nearestLocationWith(state) { it.currentlyOccupiedBy()?.opponent == armyPlayer }
-        val nearestArmies = if (location.besiegedFigures.isEmpty())
-            location.nearestLocationWith(state) { it.nonBesiegedFigures.armyPlayer?.opponent == armyPlayer }
-                .map { (l, distance) -> Triple(l, l.nonBesiegedFigures, distance) }
-                .toList()
-        else
-            listOf(Triple(location, location.besiegedFigures, 0))
-        val nearArmyThreat = nearestArmies.maxOf { (location, defender, distance) -> pointsAgainstArmy(figures, defender, distance, location) }
-        val nearSettlementThreat = nearestLocationsToOccupy.maxOf { (l, distance) -> pointsForOccupation(figures, l, distance) }
-        val armyPoints = nearArmyThreat * playerModifier
-        val settlementPoints = nearSettlementThreat * playerModifier
-        logger.debug("Points for {}: {} figurePoints + {} armyPoints + {} settlementPoints", location, figurePoints, armyPoints, settlementPoints)
-        return figurePoints + armyPoints + settlementPoints // TODO: Account merging armies
+        val armyPlayer = figures.armyPlayer ?: return figurePoints
+        return figurePoints + LocationFinder.getNearestLocations(location.name)
+            .filter { (_, distance) -> distance < 10 }
+            .flatMap { (to, _) -> LocationFinder.getShortestPath(location.name, to) }
+            .map { scoreFor(location, it.locations) }
+            .filter { it > 0 }
+            .take(5)
+            .sum() * armyPlayer.toModifier()
     }
 
-    // TODO: Account armies in between
-    private fun pointsForOccupation(attacker: Figures, location: Location, distance: Int): Int {
-        val defender = if (distance == 0) location.besiegedFigures else location.nonBesiegedFigures // TODO: A besieged location is computed wrongly
-        return if (defender.armyPlayer == null)
-            max(50 - distance * 2, 0) * (location.victoryPoints * 10 + 1)
+    private fun scoreFor(from: Location, to: List<LocationName>) = if (to.isEmpty()) {
+        if (!from.besiegedFigures.isEmpty()) scoreForSiege(from) else 0
+    } else {
+        val toLocation = state.location[to.last()]
+        val toPlayer = toLocation?.nonBesiegedFigures?.armyPlayer
+        val fromPlayer = from.nonBesiegedFigures.armyPlayer!!
+        if (toPlayer == fromPlayer.opponent)
+            scoreForBattle(from, to)
+        else if (toPlayer == fromPlayer)
+            scoreForJoin(from, to)
+        else if (toLocation?.currentlyOccupiedBy() == fromPlayer.opponent)
+            scoreForOccupation(from, to)
         else
-            pointsAgainstArmy(attacker, defender, distance, location) * (location.victoryPoints * 2 + 1)
+            0
     }
 
-    private fun pointsAgainstArmy(attacker: Figures, defender: Figures, distance: Int, location: Location): Int {
-        val stronghold = distance == 0 || location.type == LocationType.STRONGHOLD
-        val defenderBonus = if (stronghold)
-            2.5f
-        else if (location.type == LocationType.CITY || location.type == LocationType.FORTIFICATION)
-            1.5f
-        else
-            1.0f
-        val maxPoints = armyValue(attacker) - Math.round(armyValue(defender) * defenderBonus)
-        return max(0, maxPoints) * (5 - distance)
+    private fun scoreForSiege(at: Location): Int {
+        val defender = armyValue(at.besiegedFigures, LocationType.STRONGHOLD)
+        val attacker = armyValue(at.nonBesiegedFigures)
+        val points = max(0, Math.round(attacker - defender)).toInt() * 5
+        logger.debug("scoreForSiege@{}: {}", at.name, points * at.nonBesiegedFigures.armyPlayer!!.toModifier())
+        return points
     }
 
-    private fun armyValue(army: Figures) = army.combatRolls() + army.maxReRolls() + army.numElites() * 2 + army.numRegulars()
+    private fun scoreForBattle(from: Location, to: List<LocationName>): Int {
+        val points = scoreForBattleAgainstAllArmiesOnPath(from, to)
+        logger.debug("scoreForBattle@{}: {}", from.name, points * from.nonBesiegedFigures.armyPlayer!!.toModifier())
+        return points
+    }
 
-    private fun countFigure(figure: Figure): Int {
+    private fun scoreForJoin(from: Location, to: List<LocationName>): Int {
+        val fromPlayer = from.nonBesiegedFigures.armyPlayer!!
+        if (pathContainsArmyOfPlayer(to, fromPlayer.opponent)) return 0
+        val fromSize = from.nonBesiegedFigures.all.size
+        val toSize = state.location[to.last()]!!.nonBesiegedFigures.all.size
+        if (fromSize == 10 || toSize == 10) return 0
+        val points = min(10, fromSize + toSize) / to.size
+        logger.debug("scoreForJoin@{}: {}", from.name, points * fromPlayer.toModifier())
+        return points
+    }
+
+    private fun scoreForOccupation(from: Location, to: List<LocationName>): Int {
+        val points = scoreForBattleAgainstAllArmiesOnPath(from, to) * 2
+        logger.debug("scoreForOccupation@{}: {}", from.name, points * from.nonBesiegedFigures.armyPlayer!!.toModifier())
+        return points
+    }
+
+    private fun Player.toModifier() = when (this) {
+        Player.SHADOW -> 1
+        Player.FREE_PEOPLE -> -1
+    }
+
+    private fun scoreForBattleAgainstAllArmiesOnPath(from: Location, to: List<LocationName>): Int {
+        val fromPlayer = from.nonBesiegedFigures.armyPlayer!!
+        val defender = sumOfAllOpponentArmies(to, fromPlayer)
+        val attacker = armyValue(from.nonBesiegedFigures)
+        val points = max(0, Math.round(attacker - defender)).toInt() * to.last().type.toOccupationMultiplier() / to.size
+        return points
+    }
+
+    private fun sumOfAllOpponentArmies(to: List<LocationName>, fromPlayer: Player) = to.mapNotNull { state.location[it] }
+        .filter { it.nonBesiegedFigures.armyPlayer == fromPlayer.opponent }
+        .sumOf { armyValue(it.nonBesiegedFigures, it.type) }
+
+    private fun pathContainsArmyOfPlayer(to: List<LocationName>, player: Player) =
+        to.any { state.location[it]?.nonBesiegedFigures?.armyPlayer == player }
+
+    private fun LocationType.toOccupationMultiplier() = when (this) {
+        LocationType.STRONGHOLD -> 5
+        LocationType.CITY -> 3
+        LocationType.VILLAGE -> 2
+        else -> 1
+    }
+
+    private fun armyValue(army: Figures, defenderType: LocationType = LocationType.NONE): Double =
+        (army.combatRolls() + army.maxReRolls() + army.numElites() * 2.0 + army.numRegulars()) * defenderType.toArmyMultiplier()
+
+    private fun LocationType.toArmyMultiplier() = when (this) {
+        LocationType.STRONGHOLD -> 1.6
+        LocationType.CITY -> 1.2
+        LocationType.FORTIFICATION -> 1.2
+        else -> 1.0
+    }
+
+    private fun scoreForFigure(figure: Figure): Int {
         val modifier = if (figure.nation.player == Player.SHADOW) 1 else -1
         val type = figure.type
         val points = if (type.isUniqueCharacter)

@@ -6,8 +6,12 @@ import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 
 class LocationEvaluationServiceTest {
     private val umbarArmy = Figures.create(3, 0, 0, NationName.SOUTHRONS_AND_EASTERLINGS)
@@ -52,6 +56,15 @@ class LocationEvaluationServiceTest {
         private fun countScore(forState: GameState): Int {
             val testee = LocationEvaluationService(forState)
             return locations.sumOf { testee.scoreFor(forState.location[it]!!) }
+        }
+    }
+
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun setLogLevel() {
+            val logger = LoggerFactory.getLogger(LocationEvaluationService::class.java) as Logger
+            logger.level = Level.DEBUG
         }
     }
 }
