@@ -96,7 +96,7 @@ class LocationEvaluationService(private val state: GameState) {
         val defender = sumOfAllOpponentArmies(to, fromPlayer)
         val attacker = armyValue(from.nonBesiegedFigures)
         val points = max(0, Math.round(attacker - defender)).toInt() * to.last().type.toOccupationMultiplier() / to.size
-        return points
+        return points * points
     }
 
     private fun sumOfAllOpponentArmies(to: List<LocationName>, fromPlayer: Player) = to.mapNotNull { state.location[it] }
@@ -113,8 +113,10 @@ class LocationEvaluationService(private val state: GameState) {
         else -> 1
     }
 
-    private fun armyValue(army: Figures, defenderType: LocationType = LocationType.NONE): Double =
-        (army.combatRolls() + army.maxReRolls() + army.numElites() * 2.0 + army.numRegulars()) * defenderType.toArmyMultiplier()
+    private fun armyValue(army: Figures, defenderType: LocationType = LocationType.NONE): Double {
+        val (numElites, numRegulars) = army.getDefenderUnits(defenderType == LocationType.STRONGHOLD)
+        return (army.combatRolls() + army.maxReRolls() + numElites * 2.0 + numRegulars) * defenderType.toArmyMultiplier()
+    }
 
     private fun LocationType.toArmyMultiplier() = when (this) {
         LocationType.STRONGHOLD -> 1.6

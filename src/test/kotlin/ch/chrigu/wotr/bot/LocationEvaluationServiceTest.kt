@@ -46,6 +46,15 @@ class LocationEvaluationServiceTest {
         assertThat(armyAtWestHarandor) isBetterThan state
     }
 
+    @Test
+    fun `should muster before moving`() {
+        val strongArmyAtPelargir = state.addTo(LocationName.PELARGIR, Figures.create(0, 3, 2, NationName.GONDOR))
+        val moveToWestHarandor = strongArmyAtPelargir.removeFrom(LocationName.UMBAR, umbarArmy).removeFrom(LocationName.NEAR_HARAD, nearHaradArmy)
+            .addTo(LocationName.WEST_HARONDOR, umbarArmy + nearHaradArmy)
+        val musterInUmbar = strongArmyAtPelargir.addTo(LocationName.UMBAR, Figures.create(0, 1, 0, NationName.SOUTHRONS_AND_EASTERLINGS))
+        assertThat(musterInUmbar) isBetterThan moveToWestHarandor
+    }
+
     private fun assertThat(state: GameState) = GameStateAssertion(state, initialLocations.map { it.name })
 
     class GameStateAssertion(private val state: GameState, private val locations: List<LocationName>) {

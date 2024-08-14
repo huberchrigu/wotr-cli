@@ -73,6 +73,16 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 
     fun maxReRolls() = min(leadership(), combatRolls())
 
+    /**
+     * @return Pair of elites and regulars.
+     */
+    fun getDefenderUnits(besieged: Boolean): Pair<Int, Int> {
+        val maxAllowed = if (besieged) 5 else 10
+        val numElites = min(maxAllowed, numElites())
+        val numRegulars = min(maxAllowed - numElites, numRegulars())
+        return Pair(numElites, numRegulars)
+    }
+
     override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " ($nation)" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
