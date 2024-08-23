@@ -1,6 +1,8 @@
 package ch.chrigu.wotr.bot
 
 import ch.chrigu.wotr.action.*
+import ch.chrigu.wotr.bot.dsl.GivenDsl
+import ch.chrigu.wotr.bot.dsl.given
 import ch.chrigu.wotr.card.EventType
 import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.dice.DieUsage
@@ -11,6 +13,7 @@ import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -47,6 +50,19 @@ class BotEvaluationServiceTest {
         assertThat(betterAction).isGreaterThan(worseAction)
     }
 
+    @Test
+    fun `should attack if possible`() {
+        given {
+            nation(NationName.SAURON).atWar()
+            move("501") from LocationName.MINAS_MORGUL to LocationName.SOUTH_ITHILIEN
+            move("411") from LocationName.BARAD_DUR to LocationName.SOUTH_ITHILIEN
+        } expect {
+            attack("912") from LocationName.SOUTH_ITHILIEN to LocationName.OSGILIATH
+        } toBeBetterThan {
+            move("200") from LocationName.MORIA to LocationName.NORTH_DUNLAND
+        }
+    }
+
     class Args : ArgumentsProvider {
         override fun provideArguments(context: ExtensionContext?): Stream<Arguments> = Stream.of(
             action("MoveAction", DieType.ARMY) { MoveAction(LocationName.GORGOROTH, LocationName.MINAS_MORGUL, Figures.parse(arrayOf("1"), LocationName.GORGOROTH, it)) },
@@ -78,4 +94,6 @@ class BotEvaluationServiceTest {
 
     private fun countMove(from: LocationName, to: LocationName, who: String) = BotEvaluationService.count(move(from, to, who).apply(initial))
     private fun move(from: LocationName, to: LocationName, who: String) = MoveAction(from, to, Figures.parse(arrayOf(who), from, initial))
+
+    private fun given(apply: GivenDsl.() -> Unit): GivenDsl = given(initial, apply)
 }
