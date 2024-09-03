@@ -20,19 +20,25 @@ data class AttackAction(
     private val attackerLocation: LocationName,
     private val defenderLocation: LocationName = attackerLocation
 ) : GameAction {
+    init {
+        require(attacker.armyPlayer != null && defender.armyPlayer != null) { "Attacker or defender contains no army" }
+    }
+
     override fun apply(oldState: GameState): GameState {
+        checkPreconditions(oldState)
         terminal.writer().println(toString())
         terminal.writer().println("Search an appropriate combat card from ${getNumCombatCards()} ${getDeckType()}")
         return oldState
     }
 
     override fun simulate(oldState: GameState): GameState {
+        checkPreconditions(oldState)
         val casualties = CombatSimulator(
             attacker, defender, getCombatType(oldState), oldState.location[defenderLocation]!!.type,
             attackerLocation, defenderLocation
         )
             .repeat(20)
-        return casualties.fold(oldState) { a, b -> b.apply(a) }
+        return casualties.fold(oldState) { a, b -> b.apply(a) } // TODO: Army should move if possible
     }
 
     override fun toString() = "$attacker ($attackerLocation) attacks $defender (${defenderLocation})"
@@ -60,6 +66,13 @@ data class AttackAction(
         EventType.CHARACTER
     else
         EventType.STRATEGY
+
+    private fun checkPreconditions(state: GameState) {
+        val nationsNotAtWar = attacker.getArmy().map { it.nation }.distinct()
+            .mapNotNull { state.nation[it] }
+            .filter { !it.isAtWar() }
+        check(nationsNotAtWar.isEmpty()) { "Attacker should be at war, but nations are not: $nationsNotAtWar" }
+    }
 
     companion object {
         fun create(terminal: Terminal, gameState: GameState, from: LocationName, to: LocationName, figures: Figures) = AttackAction(

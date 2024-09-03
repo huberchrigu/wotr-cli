@@ -33,7 +33,7 @@ class MoveArmyStrategy(private val terminal: Terminal) : BotStrategy {
         val characterCombinations = Combinations.allSizes(of.characters().map { it.type })
             .map { of.subSet(it) }
         val figuresSortedByPriority = of.getArmyPerNation().entries.sortedByDescending { (nation, army) ->
-            val onWar = if (gameState.nation[nation]!!.isOnWar()) 100 else 0
+            val onWar = if (gameState.nation[nation]!!.isAtWar()) 100 else 0
             onWar + army.size
         }
             .flatMap { (_, army) -> army }

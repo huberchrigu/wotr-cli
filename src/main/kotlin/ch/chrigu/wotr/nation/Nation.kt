@@ -9,7 +9,7 @@ data class Nation(val box: Int, val active: Boolean, val name: NationName) {
         if (!active) require(box > 0)
     }
 
-    fun isOnWar() = box == 0
+    fun isAtWar() = box == 0
 
     fun moveDown() = copy(box = box - 1)
 }

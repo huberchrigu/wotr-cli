@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component
 class MusterStrategy(private val terminal: Terminal) : BotStrategy {
     override fun getActions(state: GameState): List<GameAction> {
         val nations = state.nation.values.filter { it.name.player == Player.SHADOW }
-        val onWar = nations.filter { it.isOnWar() }.map { it.name }
+        val onWar = nations.filter { it.isAtWar() }.map { it.name }
         val settlements = state.location.values.filter { it.nation in onWar && !it.captured }
         val combinations = Combinations.ofSize(settlements, 2)
         return (nations.map { it.name } - onWar.toSet()).map { PoliticsMarkerAction(it) } +

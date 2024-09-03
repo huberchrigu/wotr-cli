@@ -23,7 +23,7 @@ class BotActionFactory(private val strategies: List<BotStrategy>) {
             .toSet()
             .also { logTimer { "Found ${it.size} actions" } }
             .mapNotNull { EvaluatedAction.create(it, state) }
-            .toSortedSet()
+            .toSortedSet { a, b -> b.compareTo(a) }
         logTimer { "Found ${singleActions.size} evaluated actions" }
         check(singleActions.isNotEmpty()) { "There is no possible bot action" }
         val combinedActions = combineFirst(min(10, singleActions.size), singleActions)
@@ -63,6 +63,8 @@ class BotActionFactory(private val strategies: List<BotStrategy>) {
             try {
                 newState = action.simulate(state)
             } catch (e: IllegalArgumentException) {
+                return null
+            } catch (e: IllegalStateException) {
                 return null
             }
             return BotEvaluationService.count(newState)

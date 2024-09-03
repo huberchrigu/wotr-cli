@@ -39,7 +39,7 @@ object BotEvaluationService {
      */
     private fun countNations(nations: Collection<Nation>) = nations.sumOf { if (it.name.player == Player.SHADOW) countNation(it) else -countNation(it) }
 
-    private fun countNation(nation: Nation) = if (nation.isOnWar())
+    private fun countNation(nation: Nation) = if (nation.isAtWar())
         10
     else if (nation.active)
         8 - nation.box
