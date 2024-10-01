@@ -62,4 +62,9 @@ data class GameState(
 
     private fun getVictoryPoints(player: Player) = location.values.filter { it.nation?.player != player && it.captured }
         .fold(0) { a, b -> a + b.victoryPoints }
+
+    companion object {
+        fun create(locations: List<Location>, reinforcements: List<Figure> = emptyList()) =
+            GameState(locations.associateBy { it.name }, emptyMap(), Figures(reinforcements, FiguresType.REINFORCEMENTS), emptyList())
+    }
 }

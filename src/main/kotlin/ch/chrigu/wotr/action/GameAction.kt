@@ -11,5 +11,13 @@ interface GameAction {
      */
     fun simulate(oldState: GameState): GameState = apply(oldState)
     fun tryToCombine(other: GameAction): GameAction? = null
+    fun tryToApply(oldState: GameState) = try {
+        apply(oldState)
+    } catch (e: IllegalArgumentException) {
+        null
+    } catch (e: IllegalStateException) {
+        null
+    }
+
     fun requiredDice(): Set<DieType> = throw IllegalStateException("The action ${javaClass.simpleName} does not support to be played within a die action")
 }

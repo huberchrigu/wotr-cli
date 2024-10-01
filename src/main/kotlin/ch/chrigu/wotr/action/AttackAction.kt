@@ -6,6 +6,7 @@ import ch.chrigu.wotr.combat.CombatType
 import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.figure.FigureType
 import ch.chrigu.wotr.figure.Figures
+import ch.chrigu.wotr.figure.toFigures
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 import org.jline.terminal.Terminal
@@ -31,6 +32,9 @@ data class AttackAction(
         return oldState
     }
 
+    /**
+     * Simplification. Defender never moves away.
+     */
     override fun simulate(oldState: GameState): GameState {
         checkPreconditions(oldState)
         val casualties = CombatSimulator(
@@ -38,8 +42,14 @@ data class AttackAction(
             attackerLocation, defenderLocation
         )
             .repeat(20)
-        return casualties.fold(oldState) { a, b -> b.apply(a) } // TODO: Army should move if possible
+        val newState = casualties.fold(oldState) { a, b -> b.apply(a) }
+        return moveIfPossible(newState)
     }
+
+    private fun moveIfPossible(newState: GameState) = MoveAction(
+        attackerLocation, defenderLocation,
+        newState.location[attackerLocation]!!.allFigures().intersect(attacker.all.toSet()).toFigures()
+    ).tryToApply(newState) ?: newState
 
     override fun toString() = "$attacker ($attackerLocation) attacks $defender (${defenderLocation})"
     override fun requiredDice() = setOf(DieType.ARMY, DieType.ARMY_MUSTER) + if (attacker.all.any { !it.type.isUnit })

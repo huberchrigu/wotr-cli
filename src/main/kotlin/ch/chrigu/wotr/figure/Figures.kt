@@ -131,3 +131,5 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
         )
     }
 }
+
+fun Collection<Figure>.toFigures() = Figures(this.toList())

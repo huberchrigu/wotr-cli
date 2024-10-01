@@ -1,7 +1,6 @@
 package ch.chrigu.wotr.bot
 
 import ch.chrigu.wotr.figure.Figures
-import ch.chrigu.wotr.figure.FiguresType
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationName
@@ -23,7 +22,7 @@ class LocationEvaluationServiceTest {
         Location(LocationName.PELARGIR, pelargirArmy),
         Location(LocationName.NEAR_HARAD, nearHaradArmy)
     )
-    private val state = GameState(initialLocations.associateBy { it.name }, emptyMap(), Figures(emptyList(), FiguresType.REINFORCEMENTS), emptyList())
+    private val state = GameState.create(initialLocations)
 
     @Test
     fun `merging armies should get higher score`() {

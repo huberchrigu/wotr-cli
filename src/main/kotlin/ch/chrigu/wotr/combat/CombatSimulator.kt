@@ -19,8 +19,9 @@ class CombatSimulator(
     private val combatType: CombatType,
     private val locationType: LocationType,
     private val attackerLocation: LocationName,
-    private val defenderLocation: LocationName
-) {
+    private val defenderLocation: LocationName,
+    private val dieFactory: DieFactory = RandomDieFactory
+) { // TODO: Should simulate multiple rounds of combat
     fun repeat(num: Int): List<Casualties> {
         val requires = if (combatType == CombatType.SIEGE)
             6
@@ -28,8 +29,8 @@ class CombatSimulator(
             6
         else
             5
-        val attackerDice = CombatDice(attacker.combatRolls(), attacker.maxReRolls(), requires)
-        val defenderDice = CombatDice(defender.combatRolls(), defender.maxReRolls(), 5)
+        val attackerDice = CombatDice(attacker.combatRolls(), attacker.maxReRolls(), requires, dieFactory)
+        val defenderDice = CombatDice(defender.combatRolls(), defender.maxReRolls(), 5, dieFactory)
         val hits = (0 until num).map { attackerDice.roll() to defenderDice.roll() }
             .fold(0.0 to 0.0) { (a1, d1), (a2, d2) -> a1 + a2 to d1 + d2 }
             .let { (a, d) -> round(a / num) to round(d / num) }
@@ -78,7 +79,7 @@ data class Casualties(private val at: LocationName, private val from: Figures, p
     }
 }
 
-data class CombatDice(private val combatRolls: Int, private val maxReRolls: Int, val requires: Int) {
+data class CombatDice(private val combatRolls: Int, private val maxReRolls: Int, val requires: Int, private val dieFactory: DieFactory = RandomDieFactory) {
     init {
         require(combatRolls in 1..5)
         require(maxReRolls in 0..5)
@@ -93,5 +94,13 @@ data class CombatDice(private val combatRolls: Int, private val maxReRolls: Int,
         return ok + reRoll
     }
 
-    private fun rollDice(num: Int) = (0 until num).map { Random.nextInt(6) + 1 }
+    private fun rollDice(num: Int) = (0 until num).map { dieFactory.next() }
+}
+
+object RandomDieFactory : DieFactory {
+    override fun next() = Random.nextInt(6) + 1
+}
+
+interface DieFactory {
+    fun next(): Int
 }
