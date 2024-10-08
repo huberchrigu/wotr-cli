@@ -1,5 +1,6 @@
 package ch.chrigu.wotr.figure
 
+import ch.chrigu.wotr.combat.CombatType
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
@@ -11,7 +12,7 @@ import kotlin.math.min
 data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LOCATION) {
     init {
         require(all.distinct().size == all.size) { "Figures $all are not unique" }
-        if (type != FiguresType.REINFORCEMENTS) {
+        if (type != FiguresType.POOL) {
             require(getArmy().all { it.nation.player == armyPlayer }) { "All army members must be of the same player: ${getArmy()}" }
             require((all - getArmy().toSet()).all { !it.type.isUnit && (it.nation.player != armyPlayer || !it.type.canBePartOfArmy) && it.isCharacterOrNazgul() })
             { "All figures not belonging to an army must be the other's player unique character: ${all - getArmy().toSet()}" }
@@ -32,6 +33,23 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     fun subSet(characters: List<FigureType>) = copy(all = characters.map { take(it) })
 
     fun isEmpty() = all.isEmpty()
+
+    /**
+     * Tries to downgrade an elite if [CombatType.SIEGE]. If there is no elite, it returns `null`.
+     * For other combat types, `this` is returned.
+     */
+    @Deprecated("See downgradeOrNull()")
+    fun downgradeOrNull(type: CombatType) = if (type == CombatType.SIEGE)
+        downgradeOrNull()
+    else
+        this
+
+    @Deprecated("Do not use this function for any other purposes than the combat simulator - reinforcements and killed units are ignored and the game state is not updated correctly")
+    private fun downgradeOrNull(): Figures? {
+        val elite = all.firstOrNull { it.type == FigureType.ELITE }
+        if (elite == null) return null
+        return (all - elite + Figure.create(1, FigureType.REGULAR, elite.nation)).toFigures()
+    }
 
     operator fun plus(other: Figures) = copy(all = all + other.all)
 
@@ -73,19 +91,26 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 
     fun maxReRolls() = min(leadership(), combatRolls())
 
-    /**
-     * @return Pair of elites and regulars.
-     */
-    fun getDefenderUnits(besieged: Boolean): Pair<Int, Int> {
-        val maxAllowed = if (besieged) 5 else 10
-        val numElites = min(maxAllowed, numElites())
-        val numRegulars = min(maxAllowed - numElites, numRegulars())
-        return Pair(numElites, numRegulars)
+    fun score(strongholdThreshold: Boolean): Int {
+        val (numElites, numRegulars) = getDefenderUnits(strongholdThreshold)
+        return combatRolls() + maxReRolls() + numElites * 2 + numRegulars
     }
+
+    fun numUnits() = all.count { it.type.isUnit }
 
     override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " ($nation)" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
+
+    /**
+     * @return Pair of elites and regulars.
+     */
+    private fun getDefenderUnits(strongholdThreshold: Boolean): Pair<Int, Int> {
+        val maxAllowed = if (strongholdThreshold) 5 else 10
+        val numElites = min(maxAllowed, numElites())
+        val numRegulars = min(maxAllowed - numElites, numRegulars())
+        return Pair(numElites, numRegulars)
+    }
 
     private fun getUnits() = all.filter { it.type.isUnit }
 
@@ -94,13 +119,11 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     private fun printArmy(figures: List<Figure>) = numRegulars(figures).toString() +
             numElites(figures) +
             numLeadersOrNazgul(figures)
-
     private fun numLeadersOrNazgul(figures: List<Figure>) = figures.count { it.type == FigureType.LEADER_OR_NAZGUL }
 
     private fun numElites(figures: List<Figure>) = figures.count { it.type == FigureType.ELITE }
-    private fun numRegulars(figures: List<Figure>) = figures.count { it.type == FigureType.REGULAR }
 
-    fun numUnits() = all.count { it.type.isUnit }
+    private fun numRegulars(figures: List<Figure>) = figures.count { it.type == FigureType.REGULAR }
 
     private fun take(type: FigureType) = all.first { it.type == type }
 

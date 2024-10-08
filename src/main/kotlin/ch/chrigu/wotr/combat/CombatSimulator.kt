@@ -20,12 +20,13 @@ class CombatSimulator(
     private val locationType: LocationType,
     private val attackerLocation: LocationName,
     private val defenderLocation: LocationName,
+    private val round: Int,
     private val dieFactory: DieFactory = RandomDieFactory
-) { // TODO: Should simulate multiple rounds of combat
+) {
     fun repeat(num: Int): List<Casualties> {
         val requires = if (combatType == CombatType.SIEGE)
             6
-        else if (locationType == LocationType.CITY || locationType == LocationType.FORTIFICATION)
+        else if (round == 0 && locationType == LocationType.CITY || locationType == LocationType.FORTIFICATION)
             6
         else
             5
@@ -41,11 +42,11 @@ class CombatSimulator(
 data class Casualties(private val at: LocationName, private val from: Figures, private val hits: Int) {
     fun apply(state: GameState) = initActions(state.reinforcements).fold(state) { a, b -> b.apply(a) }
 
-    private fun initActions(reinforcements: Figures) = takeCasualty(from.copy(type = FiguresType.REINFORCEMENTS), hits, reinforcements.all.filter { it.type == FigureType.REGULAR })
+    private fun initActions(reinforcements: Figures) = takeCasualty(from.copy(type = FiguresType.POOL), hits, reinforcements.all.filter { it.type == FigureType.REGULAR })
         .fold(Casualty.zero()) { a, b -> a + b }
         .let {
             listOfNotNull(
-                if (it.killed.isEmpty()) null else KillAction(at, it.killed), // TODO: GameState should not allow adding and removing figure, just moving from one zone to another
+                if (it.killed.isEmpty()) null else KillAction(at, it.killed),
                 if (it.spawn.isEmpty()) null else MusterAction(Figures(it.spawn), at) // TODO: Can also be from killed
             )
         }

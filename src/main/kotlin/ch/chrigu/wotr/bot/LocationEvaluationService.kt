@@ -113,10 +113,8 @@ class LocationEvaluationService(private val state: GameState) {
         else -> 1
     }
 
-    private fun armyValue(army: Figures, defenderType: LocationType = LocationType.NONE): Double {
-        val (numElites, numRegulars) = army.getDefenderUnits(defenderType == LocationType.STRONGHOLD)
-        return (army.combatRolls() + army.maxReRolls() + numElites * 2.0 + numRegulars) * defenderType.toArmyMultiplier()
-    }
+    private fun armyValue(army: Figures, defenderType: LocationType = LocationType.NONE) =
+        army.score(defenderType == LocationType.STRONGHOLD) * defenderType.toArmyMultiplier()
 
     private fun LocationType.toArmyMultiplier() = when (this) {
         LocationType.STRONGHOLD -> 1.6

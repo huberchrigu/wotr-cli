@@ -2,6 +2,7 @@ package ch.chrigu.wotr.action
 
 import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.figure.Figures
+import ch.chrigu.wotr.gamestate.At
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
@@ -22,7 +23,7 @@ data class MoveAction(private val fromLocation: LocationName, private val toLoca
                 .toList()
             check(foreignNationsNotAtWar.isEmpty()) { "Figures not at war cannot move: $foreignNationsNotAtWar" }
         }
-        return oldState.removeFrom(fromLocation, figures).addTo(toLocation, figures)
+        return oldState.move(figures, At(fromLocation), At(toLocation))
     }
 
     private fun isForeign(it: NationName) = it != toLocation.nation

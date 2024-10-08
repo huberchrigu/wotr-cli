@@ -90,7 +90,7 @@ object GameStateFactory {
                 createFiguresFromNationName(SOUTHRONS_AND_EASTERLINGS, 10, 3) +
                 listOf(Figure(FigureType.WITCH_KING, SAURON), Figure(FigureType.MOUTH_OF_SAURON, SAURON), Figure(FigureType.SARUMAN, ISENGARD)) +
                 listOf(Figure(FigureType.ARAGORN, FREE_PEOPLE), Figure(FigureType.GANDALF_THE_WHITE, FREE_PEOPLE)),
-        FiguresType.REINFORCEMENTS
+        FiguresType.POOL
     )
 
     private fun createCompanions() = listOf(

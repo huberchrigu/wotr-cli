@@ -28,7 +28,7 @@ class CombatSimulatorTest {
             6, 4, 6, 6, // three hits
             4, 4, 5 // one hit
         )
-        val testee = CombatSimulator(attacker, defender, CombatType.FIELD_BATTLE, LocationType.CITY, LocationName.WEST_HARONDOR, LocationName.PELARGIR, dice)
+        val testee = CombatSimulator(attacker, defender, CombatType.FIELD_BATTLE, LocationType.CITY, LocationName.WEST_HARONDOR, LocationName.PELARGIR, 0, dice)
         val result = testee.repeat(1)
 
         dice.assertAllowDiceRolled()

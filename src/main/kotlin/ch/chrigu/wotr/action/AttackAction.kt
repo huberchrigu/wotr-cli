@@ -37,19 +37,38 @@ data class AttackAction(
      */
     override fun simulate(oldState: GameState): GameState {
         checkPreconditions(oldState)
-        val casualties = CombatSimulator(
-            attacker, defender, getCombatType(oldState), oldState.location[defenderLocation]!!.type,
-            attackerLocation, defenderLocation
-        )
-            .repeat(20)
-        val newState = casualties.fold(oldState) { a, b -> b.apply(a) }
+        val newState = simulateCombat(oldState)
         return moveIfPossible(newState)
+    }
+
+    private fun simulateCombat(oldState: GameState, round: Int = 0, attackers: Figures = attacker, defenders: Figures = defender): GameState {
+        val casualties = CombatSimulator(
+            attackers, defenders, getCombatType(oldState), oldState.location[defenderLocation]!!.type,
+            attackerLocation, defenderLocation, round
+        ).repeat(20)
+        val newState = casualties.fold(oldState) { a, b -> b.apply(a) }
+        return simulateOtherRound(newState, round) ?: newState
+    }
+
+    private fun simulateOtherRound(newState: GameState, round: Int): GameState? {
+        val type = getCombatType(newState)
+        val remainingAttackers = getRemainingAttackers(newState).downgradeOrNull(type)
+        val remainingDefenders = getRemainingDefenders(newState)
+        return if (remainingAttackers == null || remainingAttackers.isEmpty() || remainingDefenders.isEmpty() || !remainingAttackers.isSuperior(remainingDefenders, type))
+            null
+        else
+            simulateCombat(newState, round + 1, remainingAttackers, remainingDefenders)
     }
 
     private fun moveIfPossible(newState: GameState) = MoveAction(
         attackerLocation, defenderLocation,
-        newState.location[attackerLocation]!!.allFigures().intersect(attacker.all.toSet()).toFigures()
+        getRemainingAttackers(newState)
     ).tryToApply(newState) ?: newState
+
+    private fun getRemainingDefenders(newState: GameState) = getRemainingFigures(newState, defenderLocation, defender)
+    private fun getRemainingAttackers(newState: GameState) = getRemainingFigures(newState, attackerLocation, attacker)
+    private fun getRemainingFigures(newState: GameState, at: LocationName, initialFigures: Figures) =
+        newState.location[at]!!.allFigures().intersect(initialFigures.all.toSet()).toFigures()
 
     override fun toString() = "$attacker ($attackerLocation) attacks $defender (${defenderLocation})"
     override fun requiredDice() = setOf(DieType.ARMY, DieType.ARMY_MUSTER) + if (attacker.all.any { !it.type.isUnit })
@@ -61,6 +80,11 @@ data class AttackAction(
         3
     else
         2
+
+    private fun Figures.isSuperior(defenders: Figures, type: CombatType) = if (type == CombatType.SIEGE)
+        score(false) > defenders.score(false) * 2
+    else
+        score(false) > defenders.score(false)
 
     private fun figures() = attacker.all + defender.all
 

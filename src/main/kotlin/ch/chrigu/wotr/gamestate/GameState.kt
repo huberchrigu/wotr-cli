@@ -23,10 +23,11 @@ data class GameState(
     val companions: List<Figure>,
     val fellowship: Fellowship = Fellowship(),
     val dice: Dice = Dice(),
-    val cards: Cards = Cards()
+    val cards: Cards = Cards(),
+    val killed: Figures = Figures(emptyList(), FiguresType.POOL)
 ) {
     init {
-        require(reinforcements.type == FiguresType.REINFORCEMENTS)
+        require(reinforcements.type == FiguresType.POOL)
     }
 
     val fellowshipLocation
@@ -40,10 +41,14 @@ data class GameState(
     fun vpFreePeople() = location.values.filter { it.captured && it.currentlyOccupiedBy() == Player.FREE_PEOPLE }.sumOf { it.victoryPoints }
     fun vpShadow() = location.values.filter { it.captured && it.currentlyOccupiedBy() == Player.SHADOW }.sumOf { it.victoryPoints }
 
+    fun move(figures: Figures, from: Zone, to: Zone) = from.remove(this, figures).let { to.add(it, figures) }
+
+    @Deprecated("A figure should never disappear, only allow move from one zone to another")
     fun removeFrom(locationName: LocationName, figures: Figures) = location(locationName) { remove(figures) }
+
+    @Deprecated("A figure should never disappear, only allow move from one zone to another")
     fun addTo(locationName: LocationName, figures: Figures) = location(locationName) { add(figures) }
-    fun addToReinforcements(figures: Figures) = copy(reinforcements = reinforcements + figures)
-    fun removeFromReinforcements(figures: Figures) = copy(reinforcements = reinforcements - figures)
+
     fun useDie(use: DieUsage) = copy(dice = dice.useDie(use))
 
     fun numMinions() = location.values.sumOf { it.allFigures().count { figure -> figure.type.minion } }
@@ -65,6 +70,6 @@ data class GameState(
 
     companion object {
         fun create(locations: List<Location>, reinforcements: List<Figure> = emptyList()) =
-            GameState(locations.associateBy { it.name }, emptyMap(), Figures(reinforcements, FiguresType.REINFORCEMENTS), emptyList())
+            GameState(locations.associateBy { it.name }, emptyMap(), Figures(reinforcements, FiguresType.POOL), emptyList())
     }
 }

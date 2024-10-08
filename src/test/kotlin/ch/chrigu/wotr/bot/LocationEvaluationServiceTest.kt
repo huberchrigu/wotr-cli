@@ -1,6 +1,7 @@
 package ch.chrigu.wotr.bot
 
 import ch.chrigu.wotr.figure.Figures
+import ch.chrigu.wotr.gamestate.At
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationName
@@ -26,9 +27,9 @@ class LocationEvaluationServiceTest {
 
     @Test
     fun `merging armies should get higher score`() {
-        val allMovedToUmbar = state.removeFrom(LocationName.NEAR_HARAD, nearHaradArmy).addTo(LocationName.UMBAR, nearHaradArmy)
+        val allMovedToUmbar = state.move(nearHaradArmy, At(LocationName.NEAR_HARAD), At(LocationName.UMBAR))
         val one = nearHaradArmy.subSet(1, 0, 0, null)
-        val onlyOneMovedToUmbar = state.removeFrom(LocationName.NEAR_HARAD, one).addTo(LocationName.UMBAR, one)
+        val onlyOneMovedToUmbar = state.move(one, At(LocationName.NEAR_HARAD), At(LocationName.UMBAR))
         assertThat(allMovedToUmbar) isBetterThan onlyOneMovedToUmbar
     }
 

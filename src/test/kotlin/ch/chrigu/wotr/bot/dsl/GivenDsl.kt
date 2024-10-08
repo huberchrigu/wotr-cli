@@ -2,6 +2,7 @@ package ch.chrigu.wotr.bot.dsl
 
 import ch.chrigu.wotr.action.AttackAction
 import ch.chrigu.wotr.bot.BotEvaluationService
+import ch.chrigu.wotr.gamestate.At
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.nation.NationName
 import org.assertj.core.api.Assertions.assertThat
@@ -11,7 +12,7 @@ fun given(gameState: GameState, apply: GivenDsl.() -> Unit) = GivenDsl(gameState
 class GivenDsl(var gameState: GameState) {
     fun nation(name: NationName) = NationDsl(this, name)
     fun remove(units: String) = RemoveDsl(this, units)
-    fun move(units: String) = UnitActionDsl(this, units) { from, to, figures -> removeFrom(from, figures).addTo(to, figures) }
+    fun move(units: String) = UnitActionDsl(this, units) { from, to, figures -> move(figures, At(from), At(to)) }
     fun attack(units: String) = UnitActionDsl(this, units) { from, to, figures -> AttackAction.create(mock(), this, from, to, figures).simulate(this) }
 
     infix fun expect(apply: GivenDsl.() -> Unit) = ExpectedDsl(gameState, apply)
