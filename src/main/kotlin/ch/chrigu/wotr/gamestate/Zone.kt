@@ -1,5 +1,6 @@
 package ch.chrigu.wotr.gamestate
 
+import ch.chrigu.wotr.figure.Figure
 import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationName
@@ -28,3 +29,8 @@ class At(private val name: LocationName) : Zone {
 
     private fun GameState.location(modifier: Location.() -> Location) = copy(location = location + (name to location[name]!!.run(modifier)))
 }
+
+fun GameState.getPoolZoneFor(figure: Figure) = if (reinforcements.contains(figure))
+    Reinforcements
+else
+    Killed

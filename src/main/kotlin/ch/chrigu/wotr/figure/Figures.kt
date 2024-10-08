@@ -98,6 +98,8 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 
     fun numUnits() = all.count { it.type.isUnit }
 
+    fun contains(figure: Figure) = all.contains(figure)
+
     override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " ($nation)" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
@@ -115,10 +117,10 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     private fun getUnits() = all.filter { it.type.isUnit }
 
     private fun leadership() = all.sumOf { it.type.leadership }
-
     private fun printArmy(figures: List<Figure>) = numRegulars(figures).toString() +
             numElites(figures) +
             numLeadersOrNazgul(figures)
+
     private fun numLeadersOrNazgul(figures: List<Figure>) = figures.count { it.type == FigureType.LEADER_OR_NAZGUL }
 
     private fun numElites(figures: List<Figure>) = figures.count { it.type == FigureType.ELITE }
@@ -156,3 +158,4 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 }
 
 fun Collection<Figure>.toFigures() = Figures(this.toList())
+fun Figure.toFigures() = Figures(listOf(this))

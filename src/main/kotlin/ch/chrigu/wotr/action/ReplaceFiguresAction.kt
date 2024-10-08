@@ -2,9 +2,7 @@ package ch.chrigu.wotr.action
 
 import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.figure.Figures
-import ch.chrigu.wotr.gamestate.At
-import ch.chrigu.wotr.gamestate.GameState
-import ch.chrigu.wotr.gamestate.Reinforcements
+import ch.chrigu.wotr.gamestate.*
 import ch.chrigu.wotr.location.LocationName
 
 class ReplaceFiguresAction(private val replace: Figures, private val by: Figures, private val location: LocationName) : GameAction {

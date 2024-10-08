@@ -4,10 +4,7 @@ import ch.chrigu.wotr.card.Cards
 import ch.chrigu.wotr.dice.Dice
 import ch.chrigu.wotr.dice.DieUsage
 import ch.chrigu.wotr.fellowship.Fellowship
-import ch.chrigu.wotr.figure.Figure
-import ch.chrigu.wotr.figure.FigureType
-import ch.chrigu.wotr.figure.Figures
-import ch.chrigu.wotr.figure.FiguresType
+import ch.chrigu.wotr.figure.*
 import ch.chrigu.wotr.location.Location
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.Nation
@@ -69,7 +66,7 @@ data class GameState(
         .fold(0) { a, b -> a + b.victoryPoints }
 
     companion object {
-        fun create(locations: List<Location>, reinforcements: List<Figure> = emptyList()) =
-            GameState(locations.associateBy { it.name }, emptyMap(), Figures(reinforcements, FiguresType.POOL), emptyList())
+        fun create(locations: List<Location>, reinforcements: List<Figure> = emptyList(), killed: List<Figure> = emptyList()) =
+            GameState(locations.associateBy { it.name }, emptyMap(), Figures(reinforcements, FiguresType.POOL), emptyList(), killed = Figures(killed, FiguresType.POOL))
     }
 }
