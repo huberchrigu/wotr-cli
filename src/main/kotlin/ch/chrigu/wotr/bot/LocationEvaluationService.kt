@@ -29,14 +29,20 @@ class LocationEvaluationService(private val state: GameState) {
         logger.debug("figurePoints@{}: {}", location.name, figurePoints)
         val figures = location.nonBesiegedFigures
         val armyPlayer = figures.armyPlayer ?: return figurePoints
-        return figurePoints + LocationFinder.getNearestLocations(location.name)
-            .filter { (_, distance) -> distance < 10 }
+        return figurePoints + LocationFinder.getNearestLocations(location.name, 9)
+            .filter { (to, _) -> isRelevant(to, armyPlayer) }
             .flatMap { (to, _) -> LocationFinder.getShortestPath(location.name, to) }
             .map { scoreFor(location, it.locations) }
             .filter { it > 0 }
             .sortedDescending()
             .take(5)
             .sum() * armyPlayer.toModifier()
+    }
+
+    private fun isRelevant(locationName: LocationName, forPlayer: Player): Boolean {
+        val location = state.location[locationName]
+        return locationName.type != LocationType.NONE && location?.currentlyOccupiedBy() == forPlayer.opponent ||
+                location?.nonBesiegedFigures?.armyPlayer != null
     }
 
     private fun scoreFor(from: Location, to: List<LocationName>) = if (to.isEmpty()) {

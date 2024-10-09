@@ -7,6 +7,8 @@ import ch.chrigu.wotr.gamestate.Reinforcements
 import ch.chrigu.wotr.location.LocationName
 
 class MusterAction(private val figures: Figures, private val locationName: LocationName) : GameAction {
+    override val alteringLocations = listOf(locationName)
+
     override fun apply(oldState: GameState) = oldState.move(figures, Reinforcements, At(locationName))
 
     override fun toString() = "Muster $figures at $locationName"

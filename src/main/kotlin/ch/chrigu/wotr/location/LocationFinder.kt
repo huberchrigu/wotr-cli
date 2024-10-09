@@ -7,12 +7,20 @@ object LocationFinder {
      * All locations sorted by distances per location.
      */
     private val cache = Collections.synchronizedMap(EnumMap<LocationName, List<GraphNode>>(LocationName::class.java))
+    private val shortestPaths = mutableMapOf<Pair<LocationName, LocationName>, List<LocationPath>>()
 
     fun getDistance(from: LocationName, to: LocationName) = getGraph(from).first { it.name == to }.distance!!
     fun getShortestPath(from: LocationName, to: LocationName): List<LocationPath> {
+        val cached = shortestPaths[from to to]
+        if (cached != null) return cached
         val graph = getGraph(from)
-        return visit(graph, from, graph.first { it.name == to })
+        val shortestPath = visit(graph, from, graph.first { it.name == to })
+        shortestPaths[from to to] = shortestPath
+        return shortestPath
     }
+
+    fun getNearestLocations(from: LocationName, maxDistance: Int) = getGraph(from)
+        .asSequence().takeWhile { it.distance!! <= maxDistance }.map { it.name to it.distance!! }
 
     fun getNearestLocations(from: LocationName) = getGraph(from)
         .asSequence().map { it.name to it.distance!! }

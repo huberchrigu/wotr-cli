@@ -2,8 +2,10 @@ package ch.chrigu.wotr.action
 
 import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.gamestate.GameState
+import ch.chrigu.wotr.location.LocationName
 
 interface GameAction {
+    val alteringLocations: List<LocationName> get() = emptyList()
     fun apply(oldState: GameState): GameState
 
     /**

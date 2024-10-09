@@ -14,6 +14,8 @@ data class MoveAction(private val fromLocation: LocationName, private val toLoca
         require(fromLocation != toLocation) { "Move action must have two different locations" }
     }
 
+    override val alteringLocations = listOf(fromLocation, toLocation)
+
     override fun apply(oldState: GameState): GameState {
         if (toLocation.nation != null) {
             val foreignNationsNotAtWar = getArmyNations()

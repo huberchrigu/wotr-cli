@@ -7,6 +7,8 @@ import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
 
 class MusterFiguresAction(private val musters: Map<Figures, LocationName>) : GameAction {
+    override val alteringLocations = musters.values.toList()
+
     private val actions = musters.map { (figures, location) -> MusterAction(figures, location) }
 
     constructor(figures: Figures, locationName: LocationName) : this(mapOf(figures to locationName))

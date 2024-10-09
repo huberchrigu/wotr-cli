@@ -25,6 +25,8 @@ data class AttackAction(
         require(attacker.armyPlayer != null && defender.armyPlayer != null) { "Attacker or defender contains no army" }
     }
 
+    override val alteringLocations = listOf(attackerLocation, defenderLocation)
+
     override fun apply(oldState: GameState): GameState {
         checkPreconditions(oldState)
         terminal.writer().println(toString())

@@ -25,7 +25,8 @@ class BotActionFactoryTest(@Autowired private val testee: BotActionFactory) {
         while (gameState.vpShadow() < 10) {
             val next = testee.getNext(gameState)
             gameState = next.simulate(gameState)
-            println("$next ->\n$gameState")
+            val location = next.alteringLocations.mapNotNull { gameState.location[it] }.joinToString(", ")
+            println("$next -> $location\n$gameState")
         }
     }
 

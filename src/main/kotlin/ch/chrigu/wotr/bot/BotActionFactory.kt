@@ -26,7 +26,7 @@ class BotActionFactory(private val strategies: List<BotStrategy>) {
             .toSortedSet { a, b -> b.compareTo(a) }
         logTimer { "Found ${singleActions.size} evaluated actions" }
         check(singleActions.isNotEmpty()) { "There is no possible bot action" }
-        val combinedActions = combineFirst(min(10, singleActions.size), singleActions)
+        val combinedActions = combineFirst(min(5, singleActions.size), singleActions)
         return combinedActions.first().action
     }
 
