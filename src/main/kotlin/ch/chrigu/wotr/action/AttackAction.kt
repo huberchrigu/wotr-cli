@@ -16,10 +16,10 @@ import org.jline.terminal.Terminal
  */
 data class AttackAction(
     private val terminal: Terminal,
-    private val attacker: Figures,
-    private val defender: Figures,
-    private val attackerLocation: LocationName,
-    private val defenderLocation: LocationName = attackerLocation
+    val attacker: Figures,
+    val defender: Figures,
+    val attackerLocation: LocationName,
+    val defenderLocation: LocationName = attackerLocation
 ) : GameAction {
     init {
         require(attacker.armyPlayer != null && defender.armyPlayer != null) { "Attacker or defender contains no army" }

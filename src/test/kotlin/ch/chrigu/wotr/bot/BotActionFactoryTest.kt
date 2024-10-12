@@ -1,11 +1,15 @@
 package ch.chrigu.wotr.bot
 
+import ch.chrigu.wotr.action.AttackAction
+import ch.chrigu.wotr.bot.dsl.GameStateProvider
 import ch.chrigu.wotr.bot.dsl.GivenDsl
+import ch.chrigu.wotr.bot.dsl.UnitActionDsl
 import ch.chrigu.wotr.bot.dsl.given
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.gamestate.GameStateFactory
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
+import org.assertj.core.api.Assertions.assertThat
 import org.jline.terminal.Terminal
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -43,13 +47,21 @@ class BotActionFactoryTest(@Autowired private val testee: BotActionFactory) {
             remove("200") from LocationName.OSGILIATH
             reinforce("913 (sa)") to LocationName.OSGILIATH
         } expectNextAction {
-            attack("913") // TODO: from LocationName.OSGILIATH to LocationName.MINAS_TIRITH
+            attack("913") from LocationName.OSGILIATH to LocationName.MINAS_TIRITH
         }
     }
 
-    infix fun GivenDsl.expectNextAction(apply: ExpectActionDsl.() -> Unit) = ExpectActionDsl(gameState).apply()
-    class ExpectActionDsl(private val gameState: GameState) {
-        fun attack(units: String): Nothing = TODO()
+    infix fun GivenDsl.expectNextAction(apply: ExpectActionDsl.() -> Unit) = ExpectActionDsl(gameState, testee).apply()
+    class ExpectActionDsl(override var gameState: GameState, private val botActionFactory: BotActionFactory) : GameStateProvider {
+        fun attack(units: String) = UnitActionDsl(this, units) { from, to, figures ->
+            val action = botActionFactory.getNext(gameState)
+            assertThat(action.javaClass).isEqualTo(AttackAction::class.java)
+            check(action is AttackAction)
+            assertThat(action.attackerLocation).isEqualTo(from)
+            assertThat(action.defenderLocation).isEqualTo(to)
+            assertThat(action.attacker).isEqualTo(figures)
+            action.simulate(gameState)
+        }
     }
 
     @BeforeEach

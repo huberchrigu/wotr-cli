@@ -9,7 +9,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.mockito.kotlin.mock
 
 fun given(gameState: GameState, apply: GivenDsl.() -> Unit) = GivenDsl(gameState).apply(apply)
-class GivenDsl(var gameState: GameState) {
+class GivenDsl(override var gameState: GameState) : GameStateProvider {
     fun nation(name: NationName) = NationDsl(this, name)
     fun remove(units: String) = RemoveDsl(this, units)
     fun move(units: String) = UnitActionDsl(this, units) { from, to, figures -> move(figures, At(from), At(to)) }
