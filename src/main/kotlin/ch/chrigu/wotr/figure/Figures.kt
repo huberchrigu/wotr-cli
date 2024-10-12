@@ -2,6 +2,7 @@ package ch.chrigu.wotr.figure
 
 import ch.chrigu.wotr.combat.CombatType
 import ch.chrigu.wotr.gamestate.GameState
+import ch.chrigu.wotr.gamestate.Zone
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
@@ -44,13 +45,6 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     else
         this
 
-    @Deprecated("Do not use this function for any other purposes than the combat simulator - reinforcements and killed units are ignored and the game state is not updated correctly")
-    private fun downgradeOrNull(): Figures? {
-        val elite = all.firstOrNull { it.type == FigureType.ELITE }
-        if (elite == null) return null
-        return (all - elite + Figure.create(1, FigureType.REGULAR, elite.nation)).toFigures()
-    }
-
     operator fun plus(other: Figures) = copy(all = all + other.all)
 
     operator fun minus(other: Figures): Figures {
@@ -77,12 +71,12 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     fun getArmyPerNation() = getArmy().groupBy { it.nation }
 
     fun intersect(other: Figures) = copy(all = all.intersect(other.all.toSet()).toList())
-    fun union(other: Figures) = copy(all = all.union(other.all).toList())
 
+    fun union(other: Figures) = copy(all = all.union(other.all).toList())
     fun numElites() = numElites(all)
+
     fun numRegulars() = numRegulars(all)
     fun numLeadersOrNazgul() = numLeadersOrNazgul(all)
-
     fun characters() = all.filter { it.type.isUniqueCharacter }
 
     fun containsAll(figures: Figures) = all.containsAll(figures.all)
@@ -100,9 +94,20 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 
     fun contains(figure: Figure) = all.contains(figure)
 
+    fun getArmyNations() = getArmy().asSequence()
+        .map { it.nation }
+        .distinct()
+
     override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " ($nation)" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
+
+    @Deprecated("Do not use this function for any other purposes than the combat simulator - reinforcements and killed units are ignored and the game state is not updated correctly")
+    private fun downgradeOrNull(): Figures? {
+        val elite = all.firstOrNull { it.type == FigureType.ELITE }
+        if (elite == null) return null
+        return (all - elite + Figure.create(1, FigureType.REGULAR, elite.nation)).toFigures()
+    }
 
     /**
      * @return Pair of elites and regulars.

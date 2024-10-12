@@ -31,7 +31,7 @@ data class AttackAction(
         checkPreconditions(oldState)
         terminal.writer().println(toString())
         terminal.writer().println("Search an appropriate combat card from ${getNumCombatCards()} ${getDeckType()}")
-        return oldState
+        return oldState.nationsGetAttacked(defender.getArmyNations())
     }
 
     /**
@@ -39,7 +39,7 @@ data class AttackAction(
      */
     override fun simulate(oldState: GameState): GameState {
         checkPreconditions(oldState)
-        val newState = simulateCombat(oldState)
+        val newState = simulateCombat(oldState.nationsGetAttacked(defender.getArmyNations()))
         return moveIfPossible(newState)
     }
 

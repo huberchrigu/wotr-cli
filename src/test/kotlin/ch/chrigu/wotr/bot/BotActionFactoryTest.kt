@@ -1,6 +1,11 @@
 package ch.chrigu.wotr.bot
 
+import ch.chrigu.wotr.bot.dsl.GivenDsl
+import ch.chrigu.wotr.bot.dsl.given
+import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.gamestate.GameStateFactory
+import ch.chrigu.wotr.location.LocationName
+import ch.chrigu.wotr.nation.NationName
 import org.jline.terminal.Terminal
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,9 +30,26 @@ class BotActionFactoryTest(@Autowired private val testee: BotActionFactory) {
         while (gameState.vpShadow() < 10) {
             val next = testee.getNext(gameState)
             gameState = next.simulate(gameState)
-            val location = next.alteringLocations.mapNotNull { gameState.location[it] }.joinToString(", ")
+            val location = next.alteredObjects(gameState).joinToString(", ")
             println("$next -> $location\n$gameState")
         }
+    }
+
+    @Test
+    fun `should attack minas tirith`() {
+        given(GameStateFactory.newGame()) {
+            nation(NationName.SAURON).atWar()
+            nation(NationName.GONDOR).atWar()
+            remove("200") from LocationName.OSGILIATH
+            reinforce("913 (sa)") to LocationName.OSGILIATH
+        } expectNextAction {
+            attack("913") // TODO: from LocationName.OSGILIATH to LocationName.MINAS_TIRITH
+        }
+    }
+
+    infix fun GivenDsl.expectNextAction(apply: ExpectActionDsl.() -> Unit) = ExpectActionDsl(gameState).apply()
+    class ExpectActionDsl(private val gameState: GameState) {
+        fun attack(units: String): Nothing = TODO()
     }
 
     @BeforeEach

@@ -55,8 +55,40 @@ data class GameState(
 
     fun updateNation(name: NationName, modifier: Nation.() -> Nation) = copy(nation = nation + (name to nation[name]!!.run(modifier)))
 
+    fun nationsGetAttacked(nations: Sequence<NationName>) = nations.fold(this) { gameState, nationName ->
+        gameState.updateNation(nationName) { activateAndMoveIfPossible() }
+    }
+
+    fun addFiguresTo(figures: Figures, to: LocationName): GameState {
+        verifyFiguresAreAtWarOrLocationIsNotAnotherNation(figures, to)
+        return politicsIfFiguresMoveTo(to, figures)
+            .location(to) { add(figures) }
+    }
+
     override fun toString() = "FP: ${dice.freePeople} [VP: ${getVictoryPoints(Player.FREE_PEOPLE)}, Pr: ${fellowship.progress}]\n" +
             "SH: ${dice.shadow} [VP: ${getVictoryPoints(Player.SHADOW)}, Co: ${fellowship.corruption}, $cards]"
+
+    private fun politicsIfFiguresMoveTo(to: LocationName, figures: Figures): GameState {
+        val locationNation = to.nation
+        if (locationNation != null && locationNation.player.opponent == figures.armyPlayer) {
+            val movePoliticsMarker = location[to]?.captured == false && to.type.settlement
+            return updateNation(locationNation) {
+                if (movePoliticsMarker) activateAndMoveIfPossible() else activateIfPossible()
+            }
+        }
+        return this
+    }
+
+    private fun verifyFiguresAreAtWarOrLocationIsNotAnotherNation(figures: Figures, location: LocationName) {
+        if (location.nation != null) {
+            val foreignNationsNotAtWar = figures.getArmyNations()
+                .filter { location.isForeign(it) }
+                .mapNotNull { nation[it] }
+                .filter { !it.isAtWar() }
+                .toList()
+            check(foreignNationsNotAtWar.isEmpty()) { "Figures not at war cannot move: $foreignNationsNotAtWar" }
+        }
+    }
 
     private fun has(figureType: FigureType) = location.values.any { l -> l.allFigures().any { f -> f.type == figureType } }
 
@@ -64,6 +96,7 @@ data class GameState(
 
     private fun getVictoryPoints(player: Player) = location.values.filter { it.nation?.player != player && it.captured }
         .fold(0) { a, b -> a + b.victoryPoints }
+
 
     companion object {
         fun create(locations: List<Location>, reinforcements: List<Figure> = emptyList(), killed: List<Figure> = emptyList()) =

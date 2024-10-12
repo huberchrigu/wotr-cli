@@ -25,7 +25,7 @@ data object Killed : Zone {
 class At(private val name: LocationName) : Zone {
     override fun remove(gameState: GameState, figures: Figures) = gameState.location { remove(figures) }
 
-    override fun add(gameState: GameState, figures: Figures) = gameState.location { add(figures) }
+    override fun add(gameState: GameState, figures: Figures) = gameState.addFiguresTo(figures, name)
 
     private fun GameState.location(modifier: Location.() -> Location) = copy(location = location + (name to location[name]!!.run(modifier)))
 }

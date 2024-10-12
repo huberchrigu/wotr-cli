@@ -5,7 +5,6 @@ import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.gamestate.At
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
-import ch.chrigu.wotr.nation.NationName
 import kotlin.math.max
 
 data class MoveAction(private val fromLocation: LocationName, private val toLocation: LocationName, val figures: Figures) : GameAction {
@@ -17,22 +16,8 @@ data class MoveAction(private val fromLocation: LocationName, private val toLoca
     override val alteringLocations = listOf(fromLocation, toLocation)
 
     override fun apply(oldState: GameState): GameState {
-        if (toLocation.nation != null) {
-            val foreignNationsNotAtWar = getArmyNations()
-                .filter { isForeign(it) }
-                .mapNotNull { oldState.nation[it] }
-                .filter { !it.isAtWar() }
-                .toList()
-            check(foreignNationsNotAtWar.isEmpty()) { "Figures not at war cannot move: $foreignNationsNotAtWar" }
-        }
         return oldState.move(figures, At(fromLocation), At(toLocation))
     }
-
-    private fun isForeign(it: NationName) = it != toLocation.nation
-
-    private fun getArmyNations() = figures.getArmy().asSequence()
-        .map { it.nation }
-        .distinct()
 
     override fun tryToCombine(other: GameAction): GameAction? {
         if (other is MoveAction && fromLocation == other.fromLocation && toLocation == other.toLocation) {

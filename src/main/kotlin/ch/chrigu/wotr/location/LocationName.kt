@@ -303,6 +303,8 @@ enum class LocationName(val shortcut: String, val adjacent: () -> List<LocationN
 
     val fullName = name.lowercase().replace("_", " ").replaceFirstChar { it.uppercaseChar() }
 
+    fun isForeign(nation: NationName) = nation != this.nation
+
     override fun toString() = fullName
 
     companion object {

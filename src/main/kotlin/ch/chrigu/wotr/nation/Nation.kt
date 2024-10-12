@@ -11,8 +11,15 @@ data class Nation(val box: Int, val active: Boolean, val name: NationName) {
 
     fun isAtWar() = box == 0
 
-    fun moveDown() = copy(box = box - 1) // TODO: Should happen automatically with MoveActions and AttackActions
-    fun activate(): Nation {
+    fun moveDown() = copy(box = box - 1)
+
+    fun activateIfPossible() = if (active) this else activate()
+
+    fun activateAndMoveIfPossible() = activateIfPossible().moveDownIfPossible()
+
+    private fun moveDownIfPossible() = if (box > 0 && (box > 1 || active)) moveDown() else this
+
+    private fun activate(): Nation {
         require(!active)
         return copy(active = true)
     }
