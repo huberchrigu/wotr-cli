@@ -52,7 +52,7 @@ data class AttackAction(
         return simulateOtherRound(newState, round) ?: newState
     }
 
-    private fun simulateOtherRound(newState: GameState, round: Int): GameState? {
+    private fun simulateOtherRound(newState: GameState, round: Int): GameState? { // TODO: Simulate defense retreats
         val type = getCombatType(newState)
         val remainingAttackers = getRemainingAttackers(newState).downgradeOrNull(type)
         val remainingDefenders = getRemainingDefenders(newState)

@@ -27,8 +27,8 @@ object BotEvaluationService {
     fun count(state: GameState): Int {
         val locationEvaluationService = LocationEvaluationService(state)
         return countDice(state.dice) +
-                countVp(state) +
-                countFellowship(state.fellowship, state) +
+                countVp(state) * 1000 + // TODO: One occupied stronghold should be better than two cities
+                countFellowship(state.fellowship, state) * 1000 +
                 state.location.values.sumOf { locationEvaluationService.scoreFor(it) } +
                 countCards(state.cards) +
                 countNations(state.nation.values)

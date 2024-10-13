@@ -4,7 +4,7 @@ import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.dice.DieUsage
 import ch.chrigu.wotr.gamestate.GameState
 
-data class DieAction(private val use: DieUsage, private val actions: List<GameAction>) : GameAction {
+data class DieAction(private val use: DieUsage, val actions: List<GameAction>) : GameAction {
     override val alteringLocations = actions.flatMap { it.alteringLocations }
 
     override fun apply(oldState: GameState): GameState {

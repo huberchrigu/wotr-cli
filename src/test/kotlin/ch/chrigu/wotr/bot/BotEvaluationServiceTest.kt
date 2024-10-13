@@ -63,6 +63,19 @@ class BotEvaluationServiceTest {
         }
     }
 
+    @Test
+    fun `should always prefer taken stronghold`() {
+        given {
+            nation(NationName.SAURON).atWar()
+            remove("200") from LocationName.OSGILIATH
+            reinforce("801 (sa)") to LocationName.OSGILIATH
+        } expect {
+            attack("801") from LocationName.OSGILIATH to LocationName.MINAS_TIRITH
+        } toBeBetterThan {
+            move("310") from LocationName.NEAR_HARAD to LocationName.WEST_HARONDOR
+        }
+    }
+
     class Args : ArgumentsProvider {
         override fun provideArguments(context: ExtensionContext?): Stream<Arguments> = Stream.of(
             action("MoveAction", DieType.ARMY) { MoveAction(LocationName.GORGOROTH, LocationName.MINAS_MORGUL, Figures.parse(arrayOf("1"), LocationName.GORGOROTH, it)) },

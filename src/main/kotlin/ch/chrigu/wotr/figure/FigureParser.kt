@@ -8,7 +8,7 @@ class FigureParser(private val who: List<String>) {
         if (part[0].isDigit()) {
             val digits = part.takeWhile { it.isDigit() }
             require(digits.length in 1..3)
-            val nation = if (part.contains("(") && part.contains(")")) NationName.find(part.substringAfter(")").substringBefore(")")) else null
+            val nation = if (part.contains("(") && part.contains(")")) NationName.find(part.substringAfter("(").substringBefore(")")) else null
             figures.subSet(digits[0].digitToInt(), digits.getOrNull(1)?.digitToInt() ?: 0, digits.getOrNull(2)?.digitToInt() ?: 0, nation ?: defaultNationName)
         } else {
             require(part.length == 2)

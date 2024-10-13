@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Nation(val box: Int, val active: Boolean, val name: NationName) {
     init {
-        require(box >= 0)
-        if (!active) require(box > 0)
+        require(box >= 0) { "Politics marker can't get lower than box 0" }
+        if (!active) require(box > 0) { "Nation $name cannot go to war if they are not activated" }
     }
 
     fun isAtWar() = box == 0

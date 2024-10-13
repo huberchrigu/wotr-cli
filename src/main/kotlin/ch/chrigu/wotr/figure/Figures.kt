@@ -137,7 +137,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     private fun take(num: Int, type: FigureType, nation: NationName?): List<Figure> {
         val allOfType = all.filter { it.type == type }
         val list = allOfType.filter { nation == null || nation == it.nation }.take(num)
-        check(list.size == num)
+        check(list.size == num) { "Should have found $num figures of type $type, but found only ${list.size}" }
         if (num > 0 && nation == null) {
             check(allOfType.all { it.nation == allOfType[0].nation }) { "No clear nation in $allOfType" }
         }
