@@ -1,5 +1,6 @@
 package ch.chrigu.wotr.location
 
+import ch.chrigu.wotr.figure.Figure
 import ch.chrigu.wotr.figure.FigureType
 import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.figure.FiguresType
@@ -12,7 +13,7 @@ import kotlinx.serialization.Serializable
 data class Location(
     val name: LocationName,
     val nonBesiegedFigures: Figures,
-    val besiegedFigures: Figures = Figures(emptyList()),
+    val besiegedFigures: Figures = Figures(emptyList(), FiguresType.BESIEGED),
     val captured: Boolean = false
 ) {
     init {
@@ -28,7 +29,7 @@ data class Location(
             require(nonBesiegedFigures.all.none { it.isCharacterOrNazgul() && it.nation.player == Player.SHADOW }) { "Nazgul and minions may not enter strongholds controlled by free people" }
         }
         require(nonBesiegedFigures.type == FiguresType.LOCATION) { "Figures must have location type: $this" }
-        require(besiegedFigures.type == FiguresType.LOCATION) { "Figures must have location type: $this" }
+        require(besiegedFigures.type == FiguresType.BESIEGED) { "Figures must have location type: $this" }
     }
 
     val adjacentLocations: List<LocationName>
@@ -51,13 +52,19 @@ data class Location(
         copy(nonBesiegedFigures = nonBesiegedFigures - figures)
     }
 
-    fun add(figures: Figures): Location {
+    /**
+     * If the location is a stronghold and currently occupied by the opponent, they go to [besiegedFigures].
+     * @return A pair of the new location and remaining figures (that must be added to reinforcements).
+     */
+    fun add(figures: Figures): Pair<Location, List<Figure>> {
         val armyPlayer = figures.armyPlayer
         return if (type == LocationType.STRONGHOLD && armyPlayer != null && nonBesiegedFigures.armyPlayer?.opponent == armyPlayer) {
             val army = Figures(nonBesiegedFigures.getArmy())
-            copy(nonBesiegedFigures = nonBesiegedFigures - army + figures, besiegedFigures = besiegedFigures + army)
+            val (joined, remaining) = besiegedFigures.addAsMuchAsPossible(army)
+            copy(nonBesiegedFigures = nonBesiegedFigures - army + figures, besiegedFigures = joined) to remaining
         } else {
-            copy(nonBesiegedFigures = nonBesiegedFigures + figures, captured = newCapturedValueForArmy(armyPlayer))
+            val (joined, remaining) = nonBesiegedFigures.addAsMuchAsPossible(figures)
+            copy(nonBesiegedFigures = joined, captured = newCapturedValueForArmy(armyPlayer)) to remaining
         }
     }
 

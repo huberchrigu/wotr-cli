@@ -2,7 +2,6 @@ package ch.chrigu.wotr.figure
 
 import ch.chrigu.wotr.combat.CombatType
 import ch.chrigu.wotr.gamestate.GameState
-import ch.chrigu.wotr.gamestate.Zone
 import ch.chrigu.wotr.location.LocationName
 import ch.chrigu.wotr.nation.NationName
 import ch.chrigu.wotr.player.Player
@@ -17,7 +16,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
             require(getArmy().all { it.nation.player == armyPlayer }) { "All army members must be of the same player: ${getArmy()}" }
             require((all - getArmy().toSet()).all { !it.type.isUnit && (it.nation.player != armyPlayer || !it.type.canBePartOfArmy) && it.isCharacterOrNazgul() })
             { "All figures not belonging to an army must be the other's player unique character: ${all - getArmy().toSet()}" }
-            require(numUnits() <= 10) { "There must not be more than 10 units, but was ${numUnits()}" }
+            require(numUnits() <= type.figureLimit) { "There must not be more than ${type.figureLimit} units, but was ${numUnits()}" }
             if (numUnits() == 0) {
                 require(all.none { it.isFreePeopleLeader }) { "Free people leaders must not exist without army units: $all" }
             }
@@ -46,6 +45,20 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
         this
 
     operator fun plus(other: Figures) = copy(all = all + other.all)
+    operator fun plus(other: List<Figure>) = copy(all = all + other)
+
+    /**
+     * @return Pair of combined [Figures] and figures over the [FigureLimit].
+     */
+    fun addAsMuchAsPossible(other: Figures): Pair<Figures, List<Figure>> {
+        val combined = all + other.all
+        if (combined.count { it.type.isUnit } > type.figureLimit) {
+            val remove = combined.firstOrNull { it.type == FigureType.ELITE } ?: combined.first { it.type == FigureType.REGULAR }
+            val recursiveCall = copy(all = all - remove).addAsMuchAsPossible(other.copy(all = other.all - remove))
+            return recursiveCall.first to (listOf(remove) + recursiveCall.second)
+        }
+        return copy(all = combined) to emptyList()
+    }
 
     operator fun minus(other: Figures): Figures {
         require(all.containsAll(other.all))
@@ -57,7 +70,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
      * @return Empty if there are no units that could form an army.
      */
     fun getArmy(): List<Figure> {
-        check(type == FiguresType.LOCATION)
+        check(type != FiguresType.POOL)
         val units = getUnits()
         return if (units.isEmpty())
             emptyList()
@@ -81,7 +94,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 
     fun containsAll(figures: Figures) = all.containsAll(figures.all)
 
-    fun combatRolls() = min(5, numUnits())
+    fun combatRolls() = min(FigureLimit.STRONGHOLD, numUnits())
 
     fun maxReRolls() = min(leadership(), combatRolls())
 
@@ -113,7 +126,7 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
      * @return Pair of elites and regulars.
      */
     private fun getDefenderUnits(strongholdThreshold: Boolean): Pair<Int, Int> {
-        val maxAllowed = if (strongholdThreshold) 5 else 10
+        val maxAllowed = if (strongholdThreshold) FigureLimit.STRONGHOLD else FigureLimit.STANDARD
         val numElites = min(maxAllowed, numElites())
         val numRegulars = min(maxAllowed - numElites, numRegulars())
         return Pair(numElites, numRegulars)

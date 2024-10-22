@@ -17,6 +17,8 @@ data class Nation(val box: Int, val active: Boolean, val name: NationName) {
 
     fun activateAndMoveIfPossible() = activateIfPossible().moveDownIfPossible()
 
+    override fun toString() = "$name: $box/${if (active) "active" else "inactive"}"
+
     private fun moveDownIfPossible() = if (box > 0 && (box > 1 || active)) moveDown() else this
 
     private fun activate(): Nation {

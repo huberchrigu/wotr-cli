@@ -43,9 +43,6 @@ data class GameState(
     @Deprecated("A figure should never disappear, only allow move from one zone to another")
     fun removeFrom(locationName: LocationName, figures: Figures) = location(locationName) { remove(figures) }
 
-    @Deprecated("A figure should never disappear, only allow move from one zone to another")
-    fun addTo(locationName: LocationName, figures: Figures) = location(locationName) { add(figures) }
-
     fun useDie(use: DieUsage) = copy(dice = dice.useDie(use))
 
     fun numMinions() = location.values.sumOf { it.allFigures().count { figure -> figure.type.minion } }
@@ -59,10 +56,14 @@ data class GameState(
         gameState.updateNation(nationName) { activateAndMoveIfPossible() }
     }
 
+    /**
+     * If there will be too many figures, move figures over cap to [reinforcements].
+     */
     fun addFiguresTo(figures: Figures, to: LocationName): GameState {
         verifyFiguresAreAtWarOrLocationIsNotAnotherNation(figures, to)
+        val (newLocation, remaining) = location[to]!!.add(figures)
         return politicsIfFiguresMoveTo(to, figures)
-            .location(to) { add(figures) }
+            .copy(location = location + (to to newLocation), reinforcements = reinforcements + remaining)
     }
 
     override fun toString() = "FP: ${dice.freePeople} [VP: ${getVictoryPoints(Player.FREE_PEOPLE)}, Pr: ${fellowship.progress}]\n" +

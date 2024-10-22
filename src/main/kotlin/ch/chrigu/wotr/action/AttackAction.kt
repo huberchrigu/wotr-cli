@@ -1,5 +1,6 @@
 package ch.chrigu.wotr.action
 
+import ch.chrigu.wotr.bot.BotEvaluationService
 import ch.chrigu.wotr.card.EventType
 import ch.chrigu.wotr.combat.CombatSimulator
 import ch.chrigu.wotr.combat.CombatType
@@ -9,6 +10,7 @@ import ch.chrigu.wotr.figure.Figures
 import ch.chrigu.wotr.figure.toFigures
 import ch.chrigu.wotr.gamestate.GameState
 import ch.chrigu.wotr.location.LocationName
+import ch.chrigu.wotr.location.LocationType
 import org.jline.terminal.Terminal
 
 /**
@@ -39,6 +41,10 @@ data class AttackAction(
      */
     override fun simulate(oldState: GameState): GameState {
         checkPreconditions(oldState)
+        if (getCombatType(oldState) == CombatType.FIELD_BATTLE && defenderLocation.type == LocationType.STRONGHOLD) {
+            val stateAfterRetreating = retreatIfBetter(oldState, attacker, defender)
+            if (stateAfterRetreating != null) return stateAfterRetreating
+        }
         val newState = simulateCombat(oldState.nationsGetAttacked(defender.getArmyNations()))
         return moveIfPossible(newState)
     }
@@ -52,20 +58,37 @@ data class AttackAction(
         return simulateOtherRound(newState, round) ?: newState
     }
 
-    private fun simulateOtherRound(newState: GameState, round: Int): GameState? { // TODO: Simulate defense retreats
+    private fun simulateOtherRound(newState: GameState, round: Int): GameState? {
         val type = getCombatType(newState)
         val remainingAttackers = getRemainingAttackers(newState).downgradeOrNull(type)
         val remainingDefenders = getRemainingDefenders(newState)
         return if (remainingAttackers == null || remainingAttackers.isEmpty() || remainingDefenders.isEmpty() || !remainingAttackers.isSuperior(remainingDefenders, type))
             null
-        else
-            simulateCombat(newState, round + 1, remainingAttackers, remainingDefenders)
+        else {
+            retreatIfBetter(newState, remainingAttackers, remainingDefenders) ?: simulateCombat(newState, round + 1, remainingAttackers, remainingDefenders)
+        }
     }
 
-    private fun moveIfPossible(newState: GameState) = MoveAction(
-        attackerLocation, defenderLocation,
-        getRemainingAttackers(newState)
-    ).tryToApply(newState) ?: newState
+    private fun retreatIfBetter(state: GameState, attackers: Figures, defenders: Figures): GameState? {
+        if (attackers.isSuperior(defenders, getCombatType(state))) {
+            val newState = if (defenderLocation.type == LocationType.STRONGHOLD)
+                MoveAction(defenderLocation, defenderLocation, defenders).tryToApply(state)
+            else
+                defenderLocation.adjacent().mapNotNull { MoveAction(defenderLocation, it, defenders).tryToApply(state) }
+                    .maxBy { BotEvaluationService.count(it) }
+            return if (newState == null)
+                null
+            else
+                moveIfPossible(newState)
+        }
+        return null
+    }
+
+    private fun moveIfPossible(newState: GameState): GameState {
+        val figures = getRemainingAttackers(newState)
+        if (figures.isEmpty()) return newState
+        return MoveAction(attackerLocation, defenderLocation, figures).tryToApply(newState) ?: newState
+    }
 
     private fun getRemainingDefenders(newState: GameState) = getRemainingFigures(newState, defenderLocation, defender)
     private fun getRemainingAttackers(newState: GameState) = getRemainingFigures(newState, attackerLocation, attacker)

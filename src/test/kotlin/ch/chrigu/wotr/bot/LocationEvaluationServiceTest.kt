@@ -35,23 +35,23 @@ class LocationEvaluationServiceTest {
 
     @Test
     fun `should get lower score if there is an army in the way`() {
-        val withFreePeopleArmyInWestHarandor = state.addTo(LocationName.WEST_HARONDOR, Figures.create(1, 0, 0, NationName.GONDOR))
+        val withFreePeopleArmyInWestHarandor = state.addFiguresTo(Figures.create(1, 0, 0, NationName.GONDOR), LocationName.WEST_HARONDOR)
         assertThat(state) isBetterThan withFreePeopleArmyInWestHarandor
     }
 
     @Test
     fun `moving towards the target should get higher score`() {
         val armyAtWestHarandor = state.removeFrom(LocationName.UMBAR, umbarArmy).removeFrom(LocationName.NEAR_HARAD, nearHaradArmy)
-            .addTo(LocationName.WEST_HARONDOR, umbarArmy + nearHaradArmy)
+            .addFiguresTo(umbarArmy + nearHaradArmy, LocationName.WEST_HARONDOR)
         assertThat(armyAtWestHarandor) isBetterThan state
     }
 
     @Test
     fun `should muster before moving`() {
-        val strongArmyAtPelargir = state.addTo(LocationName.PELARGIR, Figures.create(0, 3, 2, NationName.GONDOR))
+        val strongArmyAtPelargir = state.addFiguresTo(Figures.create(0, 3, 2, NationName.GONDOR), LocationName.PELARGIR)
         val moveToWestHarandor = strongArmyAtPelargir.removeFrom(LocationName.UMBAR, umbarArmy).removeFrom(LocationName.NEAR_HARAD, nearHaradArmy)
-            .addTo(LocationName.WEST_HARONDOR, umbarArmy + nearHaradArmy)
-        val musterInUmbar = strongArmyAtPelargir.addTo(LocationName.UMBAR, Figures.create(0, 1, 0, NationName.SOUTHRONS_AND_EASTERLINGS))
+            .addFiguresTo(umbarArmy + nearHaradArmy, LocationName.WEST_HARONDOR)
+        val musterInUmbar = strongArmyAtPelargir.addFiguresTo(Figures.create(0, 1, 0, NationName.SOUTHRONS_AND_EASTERLINGS), LocationName.UMBAR)
         assertThat(musterInUmbar) isBetterThan moveToWestHarandor
     }
 

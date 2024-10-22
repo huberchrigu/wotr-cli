@@ -6,6 +6,7 @@ import ch.chrigu.wotr.gamestate.GameState
 
 data class DieAction(private val use: DieUsage, val actions: List<GameAction>) : GameAction {
     override val alteringLocations = actions.flatMap { it.alteringLocations }
+    override fun alteredObjects(state: GameState) = actions.flatMap { it.alteredObjects(state)}
 
     override fun apply(oldState: GameState): GameState {
         return oldState.useDie(use).let { initial -> actions.fold(initial) { state, action -> action.apply(state) } }
