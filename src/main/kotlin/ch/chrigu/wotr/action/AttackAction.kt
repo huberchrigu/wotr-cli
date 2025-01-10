@@ -72,7 +72,7 @@ data class AttackAction(
     private fun retreatIfBetter(state: GameState, attackers: Figures, defenders: Figures): GameState? {
         if (attackers.isSuperior(defenders, getCombatType(state))) {
             val newState = if (defenderLocation.type == LocationType.STRONGHOLD)
-                MoveAction(defenderLocation, defenderLocation, defenders).tryToApply(state)
+                RetreatIntoStrongholdAction(defenderLocation).tryToApply(state)
             else
                 defenderLocation.adjacent().mapNotNull { MoveAction(defenderLocation, it, defenders).tryToApply(state) }
                     .maxBy { BotEvaluationService.count(it) }

@@ -97,6 +97,11 @@ data class Location(
         return candidates.associateWith { LocationFinder.getDistance(name, it.name) }
     }
 
+    fun retreatIntoStronghold() = copy(
+        besiegedFigures = nonBesiegedFigures,
+        nonBesiegedFigures = Figures.empty()
+    )
+
     override fun toString() = name.fullName + ": " + nonBesiegedFigures.toString() + printStronghold()
 
     private fun newCapturedValueForArmy(armyPlayer: Player?) = if (currentlyOccupiedBy() == armyPlayer || armyPlayer == null)

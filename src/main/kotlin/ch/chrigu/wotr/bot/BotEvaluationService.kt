@@ -7,6 +7,8 @@ import ch.chrigu.wotr.dice.DieType
 import ch.chrigu.wotr.fellowship.Fellowship
 import ch.chrigu.wotr.figure.NumberedLevel
 import ch.chrigu.wotr.gamestate.GameState
+import ch.chrigu.wotr.location.Location
+import ch.chrigu.wotr.location.LocationType
 import ch.chrigu.wotr.nation.Nation
 import ch.chrigu.wotr.player.Player
 import kotlin.math.max
@@ -27,7 +29,7 @@ object BotEvaluationService {
     fun count(state: GameState): Int {
         val locationEvaluationService = LocationEvaluationService(state)
         return countDice(state.dice) +
-                countVp(state) * 1000 + // TODO: One occupied stronghold should be better than two cities
+                countVp(state) * 1000 +
                 countFellowship(state.fellowship, state) * 1000 +
                 state.location.values.sumOf { locationEvaluationService.scoreFor(it) } +
                 countCards(state.cards) +
@@ -54,7 +56,11 @@ object BotEvaluationService {
     else if (state.vpFreePeople() >= 4)
         -90
     else
-        5 * state.vpShadow() - 10 * state.vpFreePeople()
+        5 * state.vpShadow() - 10 * state.vpFreePeople() + 5 * state.location.values
+            .filter { it.type == LocationType.STRONGHOLD && it.captured }
+            .sumOf { pointForCapturedStronghold(it) }
+
+    private fun pointForCapturedStronghold(capturedStronghold: Location) = if (capturedStronghold.currentlyOccupiedBy() == Player.SHADOW) 1 else -2
 
     /**
      * The rings give the most points. Then, the more types of dice the player has available the better.

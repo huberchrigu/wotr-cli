@@ -66,6 +66,12 @@ data class GameState(
             .copy(location = location + (to to newLocation), reinforcements = reinforcements + remaining)
     }
 
+    fun diff(worse: GameState) = GameStateDiff(this, worse)
+    fun retreatIntoStronghold(at: LocationName): GameState {
+        val newLocation = location[at]!!.retreatIntoStronghold()
+        return copy(location = location + (at to newLocation))
+    }
+
     override fun toString() = "FP: ${dice.freePeople} [VP: ${getVictoryPoints(Player.FREE_PEOPLE)}, Pr: ${fellowship.progress}]\n" +
             "SH: ${dice.shadow} [VP: ${getVictoryPoints(Player.SHADOW)}, Co: ${fellowship.corruption}, $cards]"
 
@@ -97,9 +103,6 @@ data class GameState(
 
     private fun getVictoryPoints(player: Player) = location.values.filter { it.nation?.player != player && it.captured }
         .fold(0) { a, b -> a + b.victoryPoints }
-
-    fun diff(worse: GameState) = GameStateDiff(this, worse)
-
 
     companion object {
         fun create(locations: List<Location>, reinforcements: List<Figure> = emptyList(), killed: List<Figure> = emptyList()) =
