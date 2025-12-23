@@ -28,7 +28,7 @@ class LocationEvaluationService(private val state: GameState) {
      */
     fun scoreFor(location: Location): Int {
         val figurePoints = location.allFigures.sumOf { scoreForFigure(it) }
-        logger.debug("figurePoints@{}: {}", location.name, figurePoints)
+        if (figurePoints != 0) logger.debug("figurePoints@{}: {}", location.name, figurePoints)
         val figures = location.nonBesiegedFigures
         val armyPlayer = figures.armyPlayer ?: return figurePoints
         return figurePoints + LocationFinder.getNearestLocations(location.name, 9)
@@ -73,7 +73,7 @@ class LocationEvaluationService(private val state: GameState) {
 
     private fun scoreForBattle(from: Location, to: List<LocationName>): Int {
         val points = scoreForBattleAgainstAllArmiesOnPath(from, to)
-        logger.debug("scoreForBattle@{}: {}", from.name, points * from.nonBesiegedFigures.armyPlayer!!.toModifier())
+        if (points != 0) logger.debug("scoreForBattle@{}: {}", from.name, points * from.nonBesiegedFigures.armyPlayer!!.toModifier())
         return points
     }
 
@@ -84,13 +84,13 @@ class LocationEvaluationService(private val state: GameState) {
         val toSize = state.location[to.last()]!!.nonBesiegedFigures.all.size
         if (fromSize == 10 || toSize == 10) return 0
         val points = min(10, fromSize + toSize) / to.size
-        logger.debug("scoreForJoin@{}: {}", from.name, points * fromPlayer.toModifier())
+        if (points != 0) logger.debug("scoreForJoin@{}: {}", from.name, points * fromPlayer.toModifier())
         return points
     }
 
     private fun scoreForOccupation(from: Location, to: List<LocationName>): Int {
         val points = scoreForBattleAgainstAllArmiesOnPath(from, to) * 2
-        logger.debug("scoreForOccupation@{}: {}", from.name, points * from.nonBesiegedFigures.armyPlayer!!.toModifier())
+        if (points != 0) logger.debug("scoreForOccupation@{}: {}", from.name, points * from.nonBesiegedFigures.armyPlayer!!.toModifier())
         return points
     }
 
