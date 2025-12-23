@@ -24,8 +24,8 @@ class CombatSimulatorTest {
             6, 4, 6, 6, // three hits
             4, 4, 5 // one hit
         )
-        newGameState.location[LocationName.PELARGIR]!!.allFigures().assert().isEmpty()
-        newGameState.location[LocationName.WEST_HARONDOR]!!.allFigures().assert().hasArmy(3, 1, 0)
+        newGameState.location[LocationName.PELARGIR]!!.allFigures.assert().isEmpty()
+        newGameState.location[LocationName.WEST_HARONDOR]!!.allFigures.assert().hasArmy(3, 1, 0)
         newGameState.reinforcements.assert().hasArmy(1, 0, 0, NationName.GONDOR)
             .hasArmy(0, 1, 0, NationName.SOUTHRONS_AND_EASTERLINGS)
         newGameState.killed.assert().hasArmy(2, 1, 1)
@@ -38,8 +38,8 @@ class CombatSimulatorTest {
             2, 4, 5, 1, // one hit
             6, 6 // two hits
         )
-        newGameState.location[LocationName.PELARGIR]!!.allFigures().assert().hasArmy(2, 0, 1)
-        newGameState.location[LocationName.WEST_HARONDOR]!!.allFigures().assert().hasArmy(2, 1, 0)
+        newGameState.location[LocationName.PELARGIR]!!.allFigures.assert().hasArmy(2, 0, 1)
+        newGameState.location[LocationName.WEST_HARONDOR]!!.allFigures.assert().hasArmy(2, 1, 0)
         newGameState.reinforcements.assert().hasArmy(1, 1, 0, NationName.SOUTHRONS_AND_EASTERLINGS)
             .hasArmy(1, 0, 0, NationName.GONDOR)
         newGameState.killed.assert().hasArmy(0, 1, 0)

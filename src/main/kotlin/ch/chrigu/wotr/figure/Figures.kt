@@ -10,21 +10,31 @@ import kotlin.math.min
 
 @Serializable
 data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LOCATION) {
+    /**
+     * Excludes characters that do not belong to [armyPlayer].
+     * @return Empty if there are no units that could form an army.
+     */
+    val army: List<Figure> by lazy { collectArmy() }
+
+    val armyPlayer: Player? by lazy { army.firstOrNull()?.nation?.player }
+
+    private val scoreWithStrongholdThreshold by lazy { computeScore(true) }
+    private val scoreWithoutStrongholdThreshold by lazy { computeScore(false) }
+
+    private val units by lazy { all.filter { it.type.isUnit } }
+
     init {
         require(all.distinct().size == all.size) { "Figures $all are not unique" }
         if (type != FiguresType.POOL) {
-            require(getArmy().all { it.nation.player == armyPlayer }) { "All army members must be of the same player: ${getArmy()}" }
-            require((all - getArmy().toSet()).all { !it.type.isUnit && (it.nation.player != armyPlayer || !it.type.canBePartOfArmy) && it.isCharacterOrNazgul() })
-            { "All figures not belonging to an army must be the other's player unique character: ${all - getArmy().toSet()}" }
+            require(army.all { it.nation.player == armyPlayer }) { "All army members must be of the same player: ${army}" }
+            require((all - army.toSet()).all { !it.type.isUnit && (it.nation.player != armyPlayer || !it.type.canBePartOfArmy) && it.isCharacterOrNazgul() })
+            { "All figures not belonging to an army must be the other's player unique character: ${all - army.toSet()}" }
             require(numUnits() <= type.figureLimit) { "There must not be more than ${type.figureLimit} units, but was ${numUnits()}" }
             if (numUnits() == 0) {
                 require(all.none { it.isFreePeopleLeader }) { "Free people leaders must not exist without army units: $all" }
             }
         }
     }
-
-    val armyPlayer: Player?
-        get() = getArmy().firstOrNull()?.nation?.player
 
     fun subSet(numRegular: Int, numElite: Int, numLeader: Int, nation: NationName?): Figures {
         return copy(all = take(numRegular, FigureType.REGULAR, nation) + take(numElite, FigureType.ELITE, nation) + take(numLeader, FigureType.LEADER_OR_NAZGUL, nation))
@@ -66,22 +76,9 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
     }
 
     /**
-     * Excludes characters that do not belong to [armyPlayer].
-     * @return Empty if there are no units that could form an army.
+     * @see army
      */
-    fun getArmy(): List<Figure> {
-        check(type != FiguresType.POOL)
-        val units = getUnits()
-        return if (units.isEmpty())
-            emptyList()
-        else
-            units + all.filter { !it.type.isUnit && it.nation.player == units.first().nation.player && it.type.canBePartOfArmy }
-    }
-
-    /**
-     * @see getArmy
-     */
-    fun getArmyPerNation() = getArmy().groupBy { it.nation }
+    fun getArmyPerNation() = army.groupBy { it.nation }
 
     fun intersect(other: Figures) = copy(all = all.intersect(other.all.toSet()).toList())
 
@@ -98,22 +95,36 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
 
     fun maxReRolls() = min(leadership(), combatRolls())
 
-    fun score(strongholdThreshold: Boolean): Int {
-        val (numElites, numRegulars) = getDefenderUnits(strongholdThreshold)
-        return combatRolls() + maxReRolls() + numElites * 2 + numRegulars
-    }
+    fun score(strongholdThreshold: Boolean) = if (strongholdThreshold)
+        scoreWithStrongholdThreshold
+    else
+        scoreWithoutStrongholdThreshold
 
     fun numUnits() = all.count { it.type.isUnit }
 
     fun contains(figure: Figure) = all.contains(figure)
 
-    fun getArmyNations() = getArmy().asSequence()
+    fun getArmyNations() = army.asSequence()
         .map { it.nation }
         .distinct()
 
     override fun toString() = (all.groupBy { it.nation }.map { (nation, figures) -> printArmy(figures) + " ($nation)" } +
             all.mapNotNull { it.type.shortcut })
         .joinToString(", ")
+
+    private fun computeScore(strongholdThreshold: Boolean): Int {
+        val (numElites, numRegulars) = getDefenderUnits(strongholdThreshold)
+        return combatRolls() + maxReRolls() + numElites * 2 + numRegulars
+    }
+
+    private fun collectArmy(): List<Figure> {
+        check(type != FiguresType.POOL)
+        val units = units
+        return if (units.isEmpty())
+            emptyList()
+        else
+            units + all.filter { !it.type.isUnit && it.nation.player == units.first().nation.player && it.type.canBePartOfArmy }
+    }
 
     @Deprecated("Do not use this function for any other purposes than the combat simulator - reinforcements and killed units are ignored and the game state is not updated correctly")
     private fun downgradeOrNull(): Figures? {
@@ -131,8 +142,6 @@ data class Figures(val all: List<Figure>, val type: FiguresType = FiguresType.LO
         val numRegulars = min(maxAllowed - numElites, numRegulars())
         return Pair(numElites, numRegulars)
     }
-
-    private fun getUnits() = all.filter { it.type.isUnit }
 
     private fun leadership() = all.sumOf { it.type.leadership }
     private fun printArmy(figures: List<Figure>) = numRegulars(figures).toString() +

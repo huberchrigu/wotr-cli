@@ -27,10 +27,13 @@ object LocationFinder {
 
     private fun getGraph(from: LocationName) = cache[from] ?: initGraph(from)
 
-    private fun visit(graph: List<GraphNode>, from: LocationName, to: GraphNode): List<LocationPath> = if (from == to.name)
-        listOf(LocationPath(emptyList()))
-    else
-        to.previous.flatMap { visit(graph, from, it) }.map { it + LocationPath(listOf(to.name)) }
+    private fun visit(graph: List<GraphNode>, from: LocationName, to: GraphNode): List<LocationPath> = visitRec(Triple(graph, from, to))
+    private val visitRec = DeepRecursiveFunction<Triple<List<GraphNode>, LocationName, GraphNode>, List<LocationPath>> { (graph, from, to) ->
+        if (from == to.name)
+            listOf(LocationPath(emptyList()))
+        else
+            to.previous.flatMap { callRecursive(Triple(graph, from, it)) }.map { it + LocationPath(listOf(to.name)) }
+    }
 
     private fun initGraph(from: LocationName): List<GraphNode> {
         val graph = LocationName.entries.map { if (it == from) GraphNode(it, distance = 0) else GraphNode(it) }

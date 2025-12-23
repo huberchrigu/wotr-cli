@@ -75,7 +75,7 @@ data class AttackAction(
                 RetreatIntoStrongholdAction(defenderLocation).tryToApply(state)
             else
                 defenderLocation.adjacent().mapNotNull { MoveAction(defenderLocation, it, defenders).tryToApply(state) }
-                    .maxBy { BotEvaluationService.count(it) }
+                    .maxByOrNull { BotEvaluationService.count(it) }
             return if (newState == null)
                 null
             else
@@ -93,7 +93,7 @@ data class AttackAction(
     private fun getRemainingDefenders(newState: GameState) = getRemainingFigures(newState, defenderLocation, defender)
     private fun getRemainingAttackers(newState: GameState) = getRemainingFigures(newState, attackerLocation, attacker)
     private fun getRemainingFigures(newState: GameState, at: LocationName, initialFigures: Figures) =
-        newState.location[at]!!.allFigures().intersect(initialFigures.all.toSet()).toFigures()
+        newState.location[at]!!.allFigures.intersect(initialFigures.all.toSet()).toFigures()
 
     override fun toString() = "$attacker ($attackerLocation) attacks $defender (${defenderLocation})"
     override fun requiredDice() = setOf(DieType.ARMY, DieType.ARMY_MUSTER) + if (attacker.all.any { !it.type.isUnit })
@@ -127,7 +127,7 @@ data class AttackAction(
         EventType.STRATEGY
 
     private fun checkPreconditions(state: GameState) {
-        val nationsNotAtWar = attacker.getArmy().map { it.nation }.distinct()
+        val nationsNotAtWar = attacker.army.map { it.nation }.distinct()
             .mapNotNull { state.nation[it] }
             .filter { !it.isAtWar() }
         check(nationsNotAtWar.isEmpty()) { "Attacker should be at war, but nations are not: $nationsNotAtWar" }

@@ -17,7 +17,7 @@ class FiguresTest {
         )
         val withAragorn = Figures(listOf(Figure(FigureType.ARAGORN, NationName.GONDOR))) + shadowArmy
         assertThat(withAragorn.armyPlayer).isEqualTo(Player.SHADOW)
-        assertThat(withAragorn.getArmy().size).isEqualTo(3)
+        assertThat(withAragorn.army.size).isEqualTo(3)
         assertThat(withAragorn.getArmyPerNation().keys).isEqualTo(setOf(NationName.SAURON, NationName.SOUTHRONS_AND_EASTERLINGS))
     }
 }

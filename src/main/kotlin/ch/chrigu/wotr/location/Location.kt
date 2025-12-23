@@ -16,6 +16,8 @@ data class Location(
     val besiegedFigures: Figures = Figures(emptyList(), FiguresType.BESIEGED),
     val captured: Boolean = false
 ) {
+    val allFigures by lazy { nonBesiegedFigures.all + besiegedFigures.all }
+
     init {
         if (name.nation == null) {
             require(name.type == LocationType.NONE || name.type == LocationType.FORTIFICATION) { "This location must have a nation: $this" }
@@ -59,7 +61,7 @@ data class Location(
     fun add(figures: Figures): Pair<Location, List<Figure>> {
         val armyPlayer = figures.armyPlayer
         return if (type == LocationType.STRONGHOLD && armyPlayer != null && nonBesiegedFigures.armyPlayer?.opponent == armyPlayer) {
-            val army = Figures(nonBesiegedFigures.getArmy())
+            val army = Figures(nonBesiegedFigures.army)
             val (joined, remaining) = besiegedFigures.addAsMuchAsPossible(army)
             copy(nonBesiegedFigures = nonBesiegedFigures - army + figures, besiegedFigures = joined) to remaining
         } else {
@@ -70,9 +72,7 @@ data class Location(
 
     fun currentlyOccupiedBy() = if (captured) nation?.player?.opponent else nation?.player
 
-    fun contains(type: FigureType) = allFigures().any { it.type == type }
-
-    fun allFigures() = nonBesiegedFigures.all + besiegedFigures.all
+    fun contains(type: FigureType) = allFigures.any { it.type == type }
 
     fun getShortestPath(from: LocationName, to: LocationName): List<LocationPath> {
         return LocationFinder.getShortestPath(from, to)
@@ -81,7 +81,7 @@ data class Location(
     fun adjacentArmies(player: Player, gameState: GameState) = adjacentLocations
         .map { gameState.location[it]!!.nonBesiegedFigures }
         .filter { it.armyPlayer == player }
-        .map { it.getArmy() }
+        .map { it.army }
 
     fun nearestLocationWith(state: GameState, condition: (Location) -> Boolean): Sequence<Pair<Location, Int>> {
         var minValue: Int? = null

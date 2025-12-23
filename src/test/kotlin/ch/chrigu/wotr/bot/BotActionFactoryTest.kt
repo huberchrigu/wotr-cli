@@ -32,7 +32,7 @@ class BotActionFactoryTest(@Autowired private val testee: BotActionFactory) {
     private lateinit var terminal: Terminal
 
     @Test
-    fun `should beat free people`() {
+    fun `should beat free people`() { // TODO: Retreat into stronghold is missing
         var gameState = GameStateFactory.newGame()
         while (gameState.vpShadow() < 10) {
             val next = testee.getNext(gameState)

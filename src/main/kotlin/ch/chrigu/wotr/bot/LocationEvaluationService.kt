@@ -13,9 +13,11 @@ import ch.chrigu.wotr.player.Player
 import org.slf4j.LoggerFactory
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 class LocationEvaluationService(private val state: GameState) {
     private val logger = LoggerFactory.getLogger(this::class.java)
+    private val cachedOpponentArmies = mutableMapOf<Pair<LocationName, Player>, Double>()
 
     /**
      * Evaluates the score for this location:
@@ -25,7 +27,7 @@ class LocationEvaluationService(private val state: GameState) {
      * * Also, [count points for any possible army join][scoreForJoin].
      */
     fun scoreFor(location: Location): Int {
-        val figurePoints = location.allFigures().sumOf { scoreForFigure(it) }
+        val figurePoints = location.allFigures.sumOf { scoreForFigure(it) }
         logger.debug("figurePoints@{}: {}", location.name, figurePoints)
         val figures = location.nonBesiegedFigures
         val armyPlayer = figures.armyPlayer ?: return figurePoints
@@ -64,7 +66,7 @@ class LocationEvaluationService(private val state: GameState) {
     private fun scoreForSiege(at: Location): Int {
         val defender = armyValue(at.besiegedFigures, LocationType.STRONGHOLD)
         val attacker = armyValue(at.nonBesiegedFigures)
-        val points = max(0, Math.round(attacker - defender)).toInt() * 5
+        val points = max(0, (attacker - defender).roundToInt()) * 5
         logger.debug("scoreForSiege@{}: {}", at.name, points * at.nonBesiegedFigures.armyPlayer!!.toModifier())
         return points
     }
@@ -101,13 +103,18 @@ class LocationEvaluationService(private val state: GameState) {
         val fromPlayer = from.nonBesiegedFigures.armyPlayer!!
         val defender = sumOfAllOpponentArmies(to, fromPlayer)
         val attacker = armyValue(from.nonBesiegedFigures)
-        val points = max(0, Math.round(attacker - defender)).toInt() * to.last().type.toOccupationMultiplier() / to.size
+        val points = max(0, (attacker - defender).roundToInt()) * to.last().type.toOccupationMultiplier() / to.size
         return points * points
     }
 
-    private fun sumOfAllOpponentArmies(to: List<LocationName>, fromPlayer: Player) = to.mapNotNull { state.location[it] }
-        .filter { it.nonBesiegedFigures.armyPlayer == fromPlayer.opponent }
-        .sumOf { armyValue(it.nonBesiegedFigures, it.type) }
+    private fun sumOfAllOpponentArmies(to: List<LocationName>, fromPlayer: Player) = to.sumOf { opponentArmies(it, fromPlayer) }
+    private fun opponentArmies(locationName: LocationName, fromPlayer: Player) = cachedOpponentArmies.getOrPut(locationName to fromPlayer) {
+        val location = state.location[locationName]!!
+        return if (location.nonBesiegedFigures.armyPlayer == fromPlayer.opponent)
+            armyValue(location.nonBesiegedFigures, location.type)
+        else
+            0.0
+    }
 
     private fun pathContainsArmyOfPlayer(to: List<LocationName>, player: Player) =
         to.any { state.location[it]?.nonBesiegedFigures?.armyPlayer == player }

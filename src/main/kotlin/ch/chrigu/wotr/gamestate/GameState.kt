@@ -30,9 +30,9 @@ data class GameState(
     val fellowshipLocation
         get() = fellowship.getFellowshipLocation(this)
 
-    fun getLocationWith(figures: List<Figure>) = location.values.firstOrNull { it.allFigures().containsAll(figures) }
+    fun getLocationWith(figures: List<Figure>) = location.values.firstOrNull { it.allFigures.containsAll(figures) }
     fun findAll(filter: (Figure) -> Boolean) = location.values.flatMap { location ->
-        location.allFigures().filter(filter).map { location to it }
+        location.allFigures.filter(filter).map { location to it }
     }
 
     fun vpFreePeople() = location.values.filter { it.captured && it.currentlyOccupiedBy() == Player.FREE_PEOPLE }.sumOf { it.victoryPoints }
@@ -45,7 +45,7 @@ data class GameState(
 
     fun useDie(use: DieUsage) = copy(dice = dice.useDie(use))
 
-    fun numMinions() = location.values.sumOf { it.allFigures().count { figure -> figure.type.minion } }
+    fun numMinions() = location.values.sumOf { it.allFigures.count { figure -> figure.type.minion } }
     fun hasAragorn() = has(FigureType.ARAGORN)
     fun hasGandalfTheWhite() = has(FigureType.GANDALF_THE_WHITE)
     fun hasSaruman() = has(FigureType.SARUMAN)
@@ -97,7 +97,7 @@ data class GameState(
         }
     }
 
-    private fun has(figureType: FigureType) = location.values.any { l -> l.allFigures().any { f -> f.type == figureType } }
+    private fun has(figureType: FigureType) = location.values.any { l -> l.allFigures.any { f -> f.type == figureType } }
 
     private fun location(locationName: LocationName, modifier: Location.() -> Location) = copy(location = location + (locationName to location[locationName]!!.run(modifier)))
 

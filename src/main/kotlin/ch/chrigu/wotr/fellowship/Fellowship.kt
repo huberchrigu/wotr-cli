@@ -27,7 +27,7 @@ data class Fellowship(val progress: Int = 0, val corruption: Int = 0, val mordor
     fun numRerolls(state: GameState): Int {
         val fellowshipLocation = getFellowshipLocation(state)
         return listOf(
-            fellowshipLocation.allFigures().any { it.isNazgul },
+            fellowshipLocation.allFigures.any { it.isNazgul },
             fellowshipLocation.nonBesiegedFigures.armyPlayer == Player.SHADOW || fellowshipLocation.besiegedFigures.armyPlayer == Player.SHADOW,
             fellowshipLocation.currentlyOccupiedBy() == Player.SHADOW
         )
