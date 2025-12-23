@@ -27,12 +27,12 @@ import java.io.PrintWriter
 
 @SpringBootTest(classes = [BotActionFactory::class], properties = ["logging.level.ch.chrigu.wotr.bot.BotActionFactory=DEBUG"])
 @Import(BotActionFactoryTest.Config::class)
-class BotActionFactoryTest(@Autowired private val testee: BotActionFactory) {
+class BotActionFactoryTest(@param:Autowired private val testee: BotActionFactory) {
     @MockBean
     private lateinit var terminal: Terminal
 
     @Test
-    fun `should beat free people`() { // TODO: Retreat into stronghold is missing
+    fun `should beat free people`() {
         var gameState = GameStateFactory.newGame()
         while (gameState.vpShadow() < 10) {
             val next = testee.getNext(gameState)

@@ -24,4 +24,8 @@ class ExpectedDsl(private val gameState: GameState, private val expected: GivenD
         val worse = GivenDsl(gameState).apply(apply).gameState
         assertThat(BotEvaluationService.count(better)).describedAs("Diff better state to worse:\n${better.diff(worse)}").isGreaterThan(BotEvaluationService.count(worse))
     }
+
+    infix fun toResultIn(apply: (GameState) -> Unit) {
+        apply(GivenDsl(gameState).apply(expected).gameState)
+    }
 }
